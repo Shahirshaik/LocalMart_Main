@@ -1,0 +1,38 @@
+{
+  "name": "LocalMart — Village Marketplace",
+  "short_name": "LocalMart",
+  "description": "Hyper-local marketplace for your village",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7c3aed",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "business"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Browse Listings",
+      "url": "/listings",
+      "description": "Browse all marketplace listings"
+    },
+    {
+      "name": "Post a Listing",
+      "url": "/listings/new",
+      "description": "Submit a new buy/sell listing"
+    }
+  ]
+}
