@@ -2,7 +2,7 @@
 -- LocalMart — Combined Setup SQL
 -- Paste this ENTIRE file into:
 --   Supabase Dashboard → SQL Editor → New Query → Run All
--- Generated: 2026-06-25T15:37:07.867Z
+-- Generated: 2026-06-25T17:19:44.783Z
 -- ============================================================
 
 -- ──────────────────────────────────────────────────────────
@@ -156,39 +156,3 @@ INSERT INTO villages (name, region, district, city, state, pin_code, is_active) 
 ON CONFLICT DO NOTHING;
 
 
-
--- ──────────────────────────────────────────────────────────────
--- User Roles & Confirmation (auto-generated from setup-db.js)
--- ──────────────────────────────────────────────────────────────
-
--- Mark all 3 users as email-confirmed so they can log in immediately
-UPDATE auth.users SET
-  email_confirmed_at = NOW(),
-  confirmation_sent_at = NULL,
-  raw_app_meta_data = raw_app_meta_data || '{"provider":"email","providers":["email"]}'::jsonb
-WHERE email IN (
-  'shaikshahir215455@gmail.com',
-  'shaikshahir65@gmail.com',
-  'shahirsha215.s@gmail.com'
-);
-
--- Set correct roles on public.users
-UPDATE public.users SET role = 'ceo'::user_role,      full_name = 'Shaik Shahir',  is_verified = true
-  WHERE id = 'c5770f18-3f93-4e63-bbe8-0f97b79fe074';
-
-UPDATE public.users SET role = 'agent'::user_role,    full_name = 'Shaik Salma',   is_verified = true
-  WHERE id = '440d6228-4b66-4b95-8ed9-68cab0b87f07';
-
-UPDATE public.users SET role = 'customer'::user_role, full_name = 'Shaik Shakib',  is_verified = true
-  WHERE id = 'd1e98ae9-4695-4b03-8e6f-f47444a76571';
-
--- Verify
-SELECT au.email, u.full_name, u.role, au.email_confirmed_at IS NOT NULL AS confirmed
-FROM auth.users au
-JOIN public.users u ON u.id = au.id
-WHERE au.email IN (
-  'shaikshahir215455@gmail.com',
-  'shaikshahir65@gmail.com',
-  'shahirsha215.s@gmail.com'
-)
-ORDER BY u.role;

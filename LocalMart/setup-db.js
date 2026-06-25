@@ -87,6 +87,22 @@ async function setRole(userId, role, fullName) {
   return r.status < 300;
 }
 
+// ── Create storage bucket ─────────────────────────────────────
+async function createBucket(authKey) {
+  process.stdout.write("  📦 Creating 'listing-images' bucket … ");
+  const r = await req(HOST, "/storage/v1/bucket", "POST",
+    { id: "listing-images", name: "listing-images", public: true, fileSizeLimit: 10485760 },
+    { apikey: authKey, Authorization: "Bearer " + authKey }
+  );
+  if (r.status === 200 || r.status === 201) {
+    process.stdout.write("✅ created\n"); return;
+  }
+  if (r.status === 409 || JSON.stringify(r.body).toLowerCase().includes("already exist")) {
+    process.stdout.write("ℹ️  already exists\n"); return;
+  }
+  process.stdout.write("⚠️  status " + r.status + " — run create-bucket.js for details\n");
+}
+
 // ── Generate combined SQL file ────────────────────────────────
 function buildCombinedSQL() {
   const files = [
@@ -113,9 +129,19 @@ function buildCombinedSQL() {
 
 // ── Main ──────────────────────────────────────────────────────
 const USERS = [
-  { email: "shaikshahir215455@gmail.com", password: "Boss@215455",  name: "Shaik Shahir",  role: "ceo"      },
-  { email: "shaikshahir65@gmail.com",      password: "Salma@123",    name: "Shaik Salma",   role: "agent"    },
-  { email: "shahirsha215.s@gmail.com",     password: "Shakib@123",   name: "Shaik Shakib",  role: "customer" },
+  // ── Owner accounts ──────────────────────────────────────────────────────────
+  { email: "shaikshahir215455@gmail.com", password: "Boss@215455",   name: "Shaik Shahir",         role: "ceo"      },
+  { email: "shaikshahir65@gmail.com",     password: "Salma@123",     name: "Shaik Salma",           role: "agent"    },
+  { email: "shahirsha215.s@gmail.com",    password: "Shakib@123",    name: "Shaik Shakib",          role: "customer" },
+
+  // ── Demo / test accounts (safe to share for validation) ─────────────────────
+  { email: "demo.ceo@localmart.in",       password: "Demo@CEO123",   name: "Rajesh Kumar (CEO)",    role: "ceo"      },
+  { email: "demo.board@localmart.in",     password: "Demo@Board123", name: "Priya Singh (Board)",   role: "ceo"      },
+  { email: "demo.agent1@localmart.in",    password: "Demo@Ag1234",   name: "Suresh Reddy (Agent)",  role: "agent"    },
+  { email: "demo.agent2@localmart.in",    password: "Demo@Ag5678",   name: "Venkat Rao (Agent)",    role: "agent"    },
+  { email: "demo.buyer1@localmart.in",    password: "Demo@Buy123",   name: "Anand Naidu",           role: "customer" },
+  { email: "demo.buyer2@localmart.in",    password: "Demo@Buy456",   name: "Lakshmi Devi",          role: "customer" },
+  { email: "demo.vendor@localmart.in",    password: "Demo@Vend123",  name: "Ravi Kishore (Vendor)", role: "customer" },
 ];
 
 (async () => {
@@ -146,8 +172,12 @@ const USERS = [
     }
   }
 
-  // ── Step 2: Build combined SQL file ──────────────────────
-  console.log("\n📄 Step 2 — Building combined SQL file\n");
+  // ── Step 2: Storage bucket ───────────────────────────────
+  console.log("\n🪣  Step 2 — Storage bucket\n");
+  await createBucket(SVC_KEY || ANON_KEY);
+
+  // ── Step 3: Build combined SQL file ──────────────────────
+  console.log("\n📄 Step 3 — Building combined SQL file\n");
   const combinedPath = buildCombinedSQL();
   console.log("  ✅ Written to:");
   console.log("  " + combinedPath + "\n");

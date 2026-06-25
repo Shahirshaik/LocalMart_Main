@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { CheckCircle, ArrowLeft, Upload, ChevronRight } from "lucide-react";
 import { IndiaLocationPicker, type LocationValue } from "@/components/ui/IndiaLocationPicker";
+import { ImageUpload } from "@/components/ui/ImageUpload";
 
 type PriceType = "fixed" | "negotiable" | "free";
 type ListingType = "sell" | "buy" | "rent" | "service";
@@ -49,6 +50,7 @@ export default function NewListingPage() {
     tags: "",
   });
   const [location, setLocation] = useState<LocationValue>(EMPTY_LOCATION);
+  const [images, setImages] = useState<string[]>([]);
 
   useEffect(() => {
     supabase
@@ -93,6 +95,7 @@ export default function NewListingPage() {
       contact_phone:   form.contact_phone.trim() || null,
       whatsapp_number: form.whatsapp_number.trim() || null,
       tags:            tags.length ? tags : null,
+      images:          images.length ? images : null,
       seller_id:       user.id,
       status:          "pending",
       view_count:      0,
@@ -270,10 +273,20 @@ export default function NewListingPage() {
             </div>
           </div>
 
-          {/* ── Step 3: Price ── */}
+          {/* ── Step 3: Photos ── */}
           <div className="card p-5 space-y-4">
             <h2 className="text-sm font-semibold text-gray-700">
               <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-white text-xs mr-2">3</span>
+              Photos
+              <span className="ml-2 text-xs font-normal text-gray-400">(optional — listings with photos get 3× more views)</span>
+            </h2>
+            <ImageUpload images={images} onChange={setImages} maxImages={5} />
+          </div>
+
+          {/* ── Step 4: Price ── */}
+          <div className="card p-5 space-y-4">
+            <h2 className="text-sm font-semibold text-gray-700">
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-white text-xs mr-2">4</span>
               Price
             </h2>
 
@@ -310,19 +323,19 @@ export default function NewListingPage() {
             )}
           </div>
 
-          {/* ── Step 4: Location ── */}
+          {/* ── Step 5: Location ── */}
           <div className="card p-5">
             <h2 className="text-sm font-semibold text-gray-700 mb-4">
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-white text-xs mr-2">4</span>
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-white text-xs mr-2">5</span>
               Your Location <span className="text-red-500">*</span>
             </h2>
             <IndiaLocationPicker value={location} onChange={setLocation} required />
           </div>
 
-          {/* ── Step 5: Contact ── */}
+          {/* ── Step 6: Contact ── */}
           <div className="card p-5 space-y-4">
             <h2 className="text-sm font-semibold text-gray-700">
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-white text-xs mr-2">5</span>
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-white text-xs mr-2">6</span>
               Contact Info
             </h2>
 

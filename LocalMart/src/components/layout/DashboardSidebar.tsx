@@ -6,7 +6,9 @@ import { useState } from "react";
 import {
   ShoppingBag, LayoutDashboard, ListChecks, Users, MapPin,
   ClipboardList, LogOut, Menu, X, Home, ChevronRight,
+  Inbox, IndianRupee, ShieldCheck,
 } from "lucide-react";
+
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/database";
@@ -20,8 +22,11 @@ const CEO_LINKS = [
 ];
 
 const AGENT_LINKS = [
-  { href: "/agent",          icon: LayoutDashboard, label: "Overview" },
-  { href: "/agent/listings", icon: ListChecks,      label: "Listings" },
+  { href: "/agent",           icon: LayoutDashboard, label: "Overview" },
+  { href: "/agent/listings",  icon: ListChecks,      label: "Listings" },
+  { href: "/agent/requests",  icon: Inbox,           label: "Requests" },
+  { href: "/agent/earnings",  icon: IndianRupee,     label: "Earnings" },
+  { href: "/agent/services",  icon: ShieldCheck,     label: "Services" },
 ];
 
 interface Props { role: UserRole; email: string; }

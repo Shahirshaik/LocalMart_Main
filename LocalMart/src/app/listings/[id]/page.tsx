@@ -5,8 +5,9 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ListingStatusBadge } from "@/components/ui/StatusBadge";
 import { formatPrice, timeAgo, CATEGORY_ICONS, LISTING_TYPE_LABELS } from "@/lib/utils";
-import { Phone, MessageCircle, MapPin, Clock, Eye, Tag, ArrowLeft } from "lucide-react";
+import { MapPin, Clock, Eye, Tag, ArrowLeft } from "lucide-react";
 import type { UserRole, ListingFull } from "@/types/database";
+import { ContactAgentPanel } from "@/components/listings/ContactAgentPanel";
 
 interface Props { params: Promise<{ id: string }> }
 
@@ -23,7 +24,7 @@ export default async function ListingDetailPage({ params }: Props) {
 
   const { data: listing } = await supabase
     .from("listings")
-    .select("*, village:villages(*), category:categories(*), seller:users!seller_id(full_name, phone)")
+    .select("*, village:villages(*), category:categories(*), seller:users!seller_id(full_name, phone), agent:agents!assigned_agent_id(id, rating, rating_count, user:users!agents_user_id_fkey(full_name, phone))")
     .eq("id", id)
     .single();
 
@@ -32,10 +33,11 @@ export default async function ListingDetailPage({ params }: Props) {
   await supabase.from("listings")
     .update({ view_count: listing.view_count + 1 }).eq("id", id);
 
-  const l = listing as ListingFull & { seller?: { full_name: string; phone: string } };
+  const l = listing as ListingFull & {
+    seller?: { full_name: string; phone: string };
+    agent?: { id: string; rating: number | null; rating_count?: number; user?: { full_name: string | null; phone: string | null } | null } | null;
+  };
   const icon = CATEGORY_ICONS[l.category?.slug ?? "other"] ?? "📦";
-  const phone = l.contact_phone || l.seller?.phone;
-  const whatsapp = l.whatsapp_number || phone;
 
   const { data: related } = await supabase
     .from("listings")
@@ -134,33 +136,10 @@ export default async function ListingDetailPage({ params }: Props) {
             </div>
 
             <div className="space-y-4">
-              <div className="card p-5">
-                <h2 className="text-sm font-semibold text-gray-700 mb-4">Contact Seller</h2>
-                {l.seller && (
-                  <div className="mb-4 pb-4 border-b border-gray-100">
-                    <p className="text-sm font-semibold text-gray-900">{l.seller.full_name}</p>
-                    <p className="text-xs text-gray-400">Seller</p>
-                  </div>
-                )}
-                <div className="space-y-3">
-                  {phone && (
-                    <a href={"tel:" + phone}
-                      className="flex items-center justify-center gap-2 w-full rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white hover:bg-green-700 transition-colors">
-                      <Phone className="h-4 w-4" /> Call Seller
-                    </a>
-                  )}
-                  {whatsapp && (
-                    <a href={"https://wa.me/" + String(whatsapp).replace(/\D/g, "")}
-                      target="_blank" rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 w-full rounded-xl bg-[#25d366] px-4 py-3 text-sm font-semibold text-white hover:bg-[#1ebe5d] transition-colors">
-                      <MessageCircle className="h-4 w-4" /> WhatsApp
-                    </a>
-                  )}
-                  {!phone && !whatsapp && (
-                    <p className="text-sm text-gray-400 text-center py-2">No contact info available</p>
-                  )}
-                </div>
-              </div>
+              <ContactAgentPanel
+                listingId={l.id}
+                agent={l.agent ?? null}
+              />
 
               <div className="card p-5">
                 <h2 className="text-sm font-semibold text-gray-700 mb-3">Listing Info</h2>

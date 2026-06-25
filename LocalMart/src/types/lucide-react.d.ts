@@ -57,4 +57,34 @@ declare module "lucide-react" {
   export const RefreshCw: LucideIcon;
   export const Megaphone: LucideIcon;
   export const Sparkles: LucideIcon;
+  // Agent / photo / contact features
+  export const ImagePlus: LucideIcon;
+  export const Loader2: LucideIcon;
+  export const ShieldCheck: LucideIcon;
+  export const ShieldAlert: LucideIcon;
+  export const CheckCircle2: LucideIcon;
+  export const Inbox: LucideIcon;
+  export const InboxIcon: LucideIcon;
+  export const IndianRupee: LucideIcon;
+  export const Banknote: LucideIcon;
+  export const Wallet: LucideIcon;
+  export const Coins: LucideIcon;
+  export const Award: LucideIcon;
+  export const BadgeCheck: LucideIcon;
+  export const Copy: LucideIcon;
+  export const Calendar: LucideIcon;
+  export const HelpCircle: LucideIcon;
+  export const Stethoscope: LucideIcon;
+  export const Landmark: LucideIcon;
+  export const Bus: LucideIcon;
+  export const GraduationCap: LucideIcon;
+  export const Droplets: LucideIcon;
+  export const AlertTriangle: LucideIcon;
+  export const Smartphone: LucideIcon;
+  export const Send: LucideIcon;
+  export const KeyRound: LucideIcon;
+  export const ChevronLeft: LucideIcon;
+  export const MessageSquare: LucideIcon;
+  export const UserCheck: LucideIcon;
+  export const RefreshCcw: LucideIcon;
 }
