@@ -89,15 +89,21 @@ function LoginForm() {
   const [phoneCode, setPhoneCode] = useState("");
   const [phoneSent, setPhoneSent] = useState(false);
 
+  const [smsConfigured] = useState(false); // set to true after Twilio is configured in Supabase Dashboard
+
   const handleSendPhoneOtp = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true); setError(""); setInfo("");
+    if (!smsConfigured) {
+      setError("SMS is not configured yet. Please use Email OTP or Password to sign in.");
+      setLoading(false); return;
+    }
     const { error: err } = await supabase.auth.signInWithOtp({ phone: fmtPhone(phone) });
     if (err) {
       const msg = err.message.toLowerCase();
       setError(
         msg.includes("sms") || msg.includes("provider") || msg.includes("phone")
-          ? "Phone OTP requires SMS setup in Supabase. Use Email OTP or Password instead."
+          ? "SMS not configured. Use Email OTP or Password instead."
           : err.message,
       );
       setLoading(false); return;
@@ -324,7 +330,35 @@ function LoginForm() {
             )}
 
             {/* ════════ PHONE OTP — step 1 ════════ */}
-            {tab === "phone-otp" && !phoneSent && (
+            {tab === "phone-otp" && !phoneSent && !smsConfigured && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm">
+                <div className="flex items-start gap-3">
+                  <Phone className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="font-semibold text-amber-800 mb-1">SMS setup required</p>
+                    <p className="text-amber-700 text-xs leading-relaxed mb-3">
+                      Phone OTP requires a Twilio account connected to Supabase.
+                      Until then, use <strong>Email OTP</strong> or <strong>Password</strong> to sign in.
+                    </p>
+                    <p className="text-amber-600 text-xs font-medium mb-2">To enable SMS (one-time setup):</p>
+                    <ol className="text-amber-700 text-xs space-y-1 list-decimal list-inside">
+                      <li>Create free Twilio account at twilio.com</li>
+                      <li>Get a free phone number (~$1 trial credit)</li>
+                      <li>Go to Supabase → Auth → Providers → Phone</li>
+                      <li>Add Twilio Account SID, Auth Token, Phone Number</li>
+                    </ol>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => switchTab("email-otp")}
+                  className="mt-4 w-full rounded-lg bg-amber-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-amber-700 transition-colors">
+                  Use Email OTP instead →
+                </button>
+              </div>
+            )}
+
+            {tab === "phone-otp" && !phoneSent && smsConfigured && (
               <form onSubmit={handleSendPhoneOtp} className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-gray-700 block mb-1.5">
