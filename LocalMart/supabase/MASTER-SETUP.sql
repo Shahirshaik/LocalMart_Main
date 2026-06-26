@@ -15,12 +15,9 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- ════════════════════════════════════════════════════════════
--- 1. DISABLE email confirmation globally
+-- 1. USERS — create or fix all 7 accounts
+--    email_confirmed_at=now() bypasses email verification
 -- ════════════════════════════════════════════════════════════
-UPDATE auth.config SET mailer_autoconfirm = true WHERE id = 1;
-
--- ════════════════════════════════════════════════════════════
--- 2. USERS — create or fix all 7 accounts
 --    Passwords are simple so you can login immediately.
 -- ════════════════════════════════════════════════════════════
 
@@ -141,7 +138,7 @@ ON CONFLICT (id) DO UPDATE SET role='customer'::user_role,full_name='Nishar 81 (
 
 
 -- ════════════════════════════════════════════════════════════
--- 3. STORAGE — create listing-images bucket (fixes upload)
+-- 2. STORAGE — create listing-images bucket (fixes upload)
 -- ════════════════════════════════════════════════════════════
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES ('listing-images','listing-images',true,10485760,
@@ -168,7 +165,7 @@ CREATE POLICY "Auth users can delete own listing images"
 
 
 -- ════════════════════════════════════════════════════════════
--- 4. CATEGORIES — ensure all 14 exist with emoji icons
+-- 3. CATEGORIES — ensure all 14 exist with emoji icons
 -- ════════════════════════════════════════════════════════════
 INSERT INTO categories (slug, name_en, name_hi, name_te, icon, sort_order) VALUES
   ('vehicles',    'Vehicles',              'वाहन',              'వాహనాలు',            '🚗', 1),
@@ -191,7 +188,7 @@ ON CONFLICT (slug) DO UPDATE
 
 
 -- ════════════════════════════════════════════════════════════
--- 5. ADD location columns to listings (if not already there)
+-- 4. ADD location columns to listings (if not already there)
 -- ════════════════════════════════════════════════════════════
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS state    TEXT;
 ALTER TABLE listings ADD COLUMN IF NOT EXISTS district TEXT;
@@ -207,7 +204,7 @@ UPDATE listings SET seller_id = user_id WHERE seller_id IS NULL;
 
 
 -- ════════════════════════════════════════════════════════════
--- 6. CONTACT REQUESTS / AGENT EARNINGS tables
+-- 5. CONTACT REQUESTS / AGENT EARNINGS tables
 -- ════════════════════════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS contact_requests (
   id                UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
