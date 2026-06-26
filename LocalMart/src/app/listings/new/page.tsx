@@ -239,22 +239,37 @@ export default function NewListingPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Category <span className="text-red-500">*</span>
               </label>
-              <select
-                value={form.category_id}
-                onChange={(e) => set("category_id", e.target.value)}
-                className="input"
-                required
-              >
-                <option value="">Select a category...</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.icon} {c.name_en}
-                  </option>
-                ))}
-              </select>
+              {categories.length === 0 ? (
+                <p className="text-sm text-gray-400">Loading categories…</p>
+              ) : (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {categories.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => set("category_id", c.id)}
+                      className={`flex flex-col items-center gap-1.5 rounded-xl p-3 border-2 transition-all text-center
+                        ${form.category_id === c.id
+                          ? "border-brand-500 bg-brand-50 ring-2 ring-brand-200"
+                          : "border-gray-200 bg-white hover:border-brand-300 hover:bg-brand-50"
+                        }`}
+                    >
+                      <span className="text-2xl leading-none">{c.icon}</span>
+                      <span className={`text-[11px] font-semibold leading-tight ${
+                        form.category_id === c.id ? "text-brand-700" : "text-gray-700"
+                      }`}>{c.name_en}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {form.category_id && (
+                <p className="mt-2 text-xs text-brand-600 font-medium">
+                  ✓ {categories.find(c => c.id === form.category_id)?.name_en} selected
+                </p>
+              )}
             </div>
 
             <div>

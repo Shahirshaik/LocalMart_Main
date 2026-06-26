@@ -16,9 +16,9 @@ export async function GET(request: Request) {
     if (user) {
       const { data: p } = await supabase
         .from("users").select("role").eq("id", user.id).single();
-      if (p?.role === "ceo")      return NextResponse.redirect(`${origin}/dashboard`);
-      if (p?.role === "agent")    return NextResponse.redirect(`${origin}/agent`);
-      if (p?.role === "customer") return NextResponse.redirect(`${origin}/my-listings`);
+      if (p?.role === "ceo")                              return NextResponse.redirect(`${origin}/dashboard`);
+      if (p?.role === "agent")                            return NextResponse.redirect(`${origin}/agent`);
+      if (p?.role === "customer" || p?.role === "vendor") return NextResponse.redirect(`${origin}/my-listings`);
     }
     return NextResponse.redirect(`${origin}${next}`);
   }

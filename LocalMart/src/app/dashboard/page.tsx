@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { StatCard } from "@/components/ui/StatCard";
 import { ListingStatusBadge } from "@/components/ui/StatusBadge";
 import Link from "next/link";
-import { LayoutDashboard, ListChecks, Users, MapPin, ClipboardList, ArrowRight, Clock } from "lucide-react";
+import { LayoutDashboard, ListChecks, Users, MapPin, ClipboardList, ArrowRight, Clock, Download, FileSpreadsheet } from "lucide-react";
 import { formatPrice, timeAgo } from "@/lib/utils";
 import type { Listing } from "@/types/database";
 
@@ -33,16 +33,50 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-7 animate-fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <LayoutDashboard className="h-6 w-6 text-brand-600" /> Dashboard
+            <LayoutDashboard className="h-6 w-6 text-brand-600" /> CEO Dashboard
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">Welcome back — here&apos;s your overview</p>
+          <p className="text-sm text-gray-500 mt-0.5">Manage listings, agents and villages</p>
         </div>
-        <Link href="/dashboard/listings" className="btn-primary text-sm">
-          Review Listings <ArrowRight className="h-4 w-4" />
-        </Link>
+        <div className="flex items-center gap-2 flex-wrap">
+          <a
+            href="/api/export/listings"
+            download
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-brand-300 transition-all shadow-sm"
+          >
+            <FileSpreadsheet className="h-4 w-4 text-green-600" />
+            Export CSV
+          </a>
+          <a
+            href="/api/export/listings?status=pending"
+            download
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-orange-200 bg-orange-50 text-sm font-medium text-orange-700 hover:bg-orange-100 transition-all shadow-sm"
+          >
+            <Download className="h-4 w-4" />
+            Pending Only
+          </a>
+          <Link href="/dashboard/listings" className="btn-primary text-sm">
+            Review Listings <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </div>
+
+      {/* Export info banner */}
+      <div className="rounded-xl bg-blue-50 border border-blue-200 px-4 py-3 flex items-start gap-3">
+        <FileSpreadsheet className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+        <div className="text-sm text-blue-800">
+          <span className="font-semibold">Area-wise Excel Download:</span>{" "}
+          Click <span className="font-medium">Export CSV</span> to download all listings.
+          Filter by area:{" "}
+          <a href="/api/export/listings?state=Telangana" download className="underline font-medium hover:text-blue-900">Telangana</a>
+          {" · "}
+          <a href="/api/export/listings?status=active" download className="underline font-medium hover:text-blue-900">Active only</a>
+          {" · "}
+          <a href="/api/export/listings?status=pending" download className="underline font-medium hover:text-blue-900">Pending only</a>.
+          Opens directly in Excel.
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">

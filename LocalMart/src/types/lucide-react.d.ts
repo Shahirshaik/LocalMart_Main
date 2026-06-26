@@ -87,4 +87,9 @@ declare module "lucide-react" {
   export const MessageSquare: LucideIcon;
   export const UserCheck: LucideIcon;
   export const RefreshCcw: LucideIcon;
+  export const Download: LucideIcon;
+  export const FileSpreadsheet: LucideIcon;
+  export const UserPlus: LucideIcon;
+  export const CheckSquare: LucideIcon;
+  export const BarChart2: LucideIcon;
 }

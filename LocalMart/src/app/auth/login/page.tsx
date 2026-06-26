@@ -24,9 +24,9 @@ async function redirectByRole(
   if (user) {
     const { data: p } = await supabase
       .from("users").select("role").eq("id", user.id).single();
-    if (p?.role === "ceo")      { router.push("/dashboard");   return; }
-    if (p?.role === "agent")    { router.push("/agent");        return; }
-    if (p?.role === "customer") { router.push("/my-listings");  return; }
+    if (p?.role === "ceo")                        { router.push("/dashboard");  return; }
+    if (p?.role === "agent")                      { router.push("/agent");       return; }
+    if (p?.role === "customer" || p?.role === "vendor") { router.push("/my-listings"); return; }
   }
   router.push(fallback);
   router.refresh();
