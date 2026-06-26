@@ -8,29 +8,31 @@
 --   ✅  Confirms emails (no email verification needed)
 --   ✅  Creates listing-images storage bucket (fix upload)
 --   ✅  Seeds all 14 categories with emojis
---   ✅  Disables email confirmation for new signups
---   ✅  Safe to re-run
+--   ✅  Safe to re-run (no ON CONFLICT on auth.users)
 -- ============================================================
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- ════════════════════════════════════════════════════════════
--- 1. USERS — create or fix all 7 accounts
---    email_confirmed_at=now() bypasses email verification
--- ════════════════════════════════════════════════════════════
---    Passwords are simple so you can login immediately.
+-- HELPER: insert user only if email does not exist yet,
+--         then always update password + confirm email.
+--         This avoids ON CONFLICT (email) which requires a
+--         named unique constraint that varies by Supabase version.
 -- ════════════════════════════════════════════════════════════
 
 -- ── CEO ─────────────────────────────────────────────────────
 INSERT INTO auth.users
   (id, instance_id, aud, role, email, encrypted_password,
    email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-VALUES (gen_random_uuid(),'00000000-0000-0000-0000-000000000000','authenticated','authenticated',
+SELECT gen_random_uuid(),'00000000-0000-0000-0000-000000000000','authenticated','authenticated',
   'shahirsha215.s@gmail.com', crypt('Admin@123',gen_salt('bf')),
-  now(),'{"provider":"email","providers":["email"]}','{"full_name":"Shahir CEO"}',now(),now())
-ON CONFLICT (email) DO UPDATE
-  SET encrypted_password=crypt('Admin@123',gen_salt('bf')),
-      email_confirmed_at=now(), updated_at=now();
+  now(),'{"provider":"email","providers":["email"]}','{"full_name":"Shahir CEO"}',now(),now()
+WHERE NOT EXISTS (SELECT 1 FROM auth.users WHERE email='shahirsha215.s@gmail.com');
+
+UPDATE auth.users
+SET encrypted_password=crypt('Admin@123',gen_salt('bf')),
+    email_confirmed_at=now(), updated_at=now()
+WHERE email='shahirsha215.s@gmail.com';
 
 INSERT INTO public.users (id, role, full_name, is_verified)
   SELECT id,'ceo'::user_role,'Shahir (CEO)',true FROM auth.users WHERE email='shahirsha215.s@gmail.com'
@@ -40,12 +42,15 @@ ON CONFLICT (id) DO UPDATE SET role='ceo'::user_role,full_name='Shahir (CEO)',is
 INSERT INTO auth.users
   (id, instance_id, aud, role, email, encrypted_password,
    email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-VALUES (gen_random_uuid(),'00000000-0000-0000-0000-000000000000','authenticated','authenticated',
+SELECT gen_random_uuid(),'00000000-0000-0000-0000-000000000000','authenticated','authenticated',
   'shaikshahir215455@gmail.com', crypt('Admin@123',gen_salt('bf')),
-  now(),'{"provider":"email","providers":["email"]}','{"full_name":"Shaik Shahir Board"}',now(),now())
-ON CONFLICT (email) DO UPDATE
-  SET encrypted_password=crypt('Admin@123',gen_salt('bf')),
-      email_confirmed_at=now(), updated_at=now();
+  now(),'{"provider":"email","providers":["email"]}','{"full_name":"Shaik Shahir Board"}',now(),now()
+WHERE NOT EXISTS (SELECT 1 FROM auth.users WHERE email='shaikshahir215455@gmail.com');
+
+UPDATE auth.users
+SET encrypted_password=crypt('Admin@123',gen_salt('bf')),
+    email_confirmed_at=now(), updated_at=now()
+WHERE email='shaikshahir215455@gmail.com';
 
 INSERT INTO public.users (id, role, full_name, is_verified)
   SELECT id,'ceo'::user_role,'Shaik Shahir (Board)',true FROM auth.users WHERE email='shaikshahir215455@gmail.com'
@@ -55,12 +60,15 @@ ON CONFLICT (id) DO UPDATE SET role='ceo'::user_role,full_name='Shaik Shahir (Bo
 INSERT INTO auth.users
   (id, instance_id, aud, role, email, encrypted_password,
    email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-VALUES (gen_random_uuid(),'00000000-0000-0000-0000-000000000000','authenticated','authenticated',
+SELECT gen_random_uuid(),'00000000-0000-0000-0000-000000000000','authenticated','authenticated',
   'shaiksalma863975@gmail.com', crypt('Agent@123',gen_salt('bf')),
-  now(),'{"provider":"email","providers":["email"]}','{"full_name":"Shaik Salma"}',now(),now())
-ON CONFLICT (email) DO UPDATE
-  SET encrypted_password=crypt('Agent@123',gen_salt('bf')),
-      email_confirmed_at=now(), updated_at=now();
+  now(),'{"provider":"email","providers":["email"]}','{"full_name":"Shaik Salma"}',now(),now()
+WHERE NOT EXISTS (SELECT 1 FROM auth.users WHERE email='shaiksalma863975@gmail.com');
+
+UPDATE auth.users
+SET encrypted_password=crypt('Agent@123',gen_salt('bf')),
+    email_confirmed_at=now(), updated_at=now()
+WHERE email='shaiksalma863975@gmail.com';
 
 INSERT INTO public.users (id, role, full_name, is_verified)
   SELECT id,'agent'::user_role,'Shaik Salma (Agent)',true FROM auth.users WHERE email='shaiksalma863975@gmail.com'
@@ -75,12 +83,15 @@ ON CONFLICT (user_id) DO UPDATE SET is_active=true, commission_pct=5.00;
 INSERT INTO auth.users
   (id, instance_id, aud, role, email, encrypted_password,
    email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-VALUES (gen_random_uuid(),'00000000-0000-0000-0000-000000000000','authenticated','authenticated',
+SELECT gen_random_uuid(),'00000000-0000-0000-0000-000000000000','authenticated','authenticated',
   'shaikshahir65@gmail.com', crypt('Agent@123',gen_salt('bf')),
-  now(),'{"provider":"email","providers":["email"]}','{"full_name":"Shaik Shahir 65"}',now(),now())
-ON CONFLICT (email) DO UPDATE
-  SET encrypted_password=crypt('Agent@123',gen_salt('bf')),
-      email_confirmed_at=now(), updated_at=now();
+  now(),'{"provider":"email","providers":["email"]}','{"full_name":"Shaik Shahir 65"}',now(),now()
+WHERE NOT EXISTS (SELECT 1 FROM auth.users WHERE email='shaikshahir65@gmail.com');
+
+UPDATE auth.users
+SET encrypted_password=crypt('Agent@123',gen_salt('bf')),
+    email_confirmed_at=now(), updated_at=now()
+WHERE email='shaikshahir65@gmail.com';
 
 INSERT INTO public.users (id, role, full_name, is_verified)
   SELECT id,'agent'::user_role,'Shaik Shahir 65 (Agent)',true FROM auth.users WHERE email='shaikshahir65@gmail.com'
@@ -95,12 +106,15 @@ ON CONFLICT (user_id) DO UPDATE SET is_active=true, commission_pct=5.00;
 INSERT INTO auth.users
   (id, instance_id, aud, role, email, encrypted_password,
    email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-VALUES (gen_random_uuid(),'00000000-0000-0000-0000-000000000000','authenticated','authenticated',
+SELECT gen_random_uuid(),'00000000-0000-0000-0000-000000000000','authenticated','authenticated',
   'contactgetjob786@gmail.com', crypt('Buyer@123',gen_salt('bf')),
-  now(),'{"provider":"email","providers":["email"]}','{"full_name":"Anand Naidu"}',now(),now())
-ON CONFLICT (email) DO UPDATE
-  SET encrypted_password=crypt('Buyer@123',gen_salt('bf')),
-      email_confirmed_at=now(), updated_at=now();
+  now(),'{"provider":"email","providers":["email"]}','{"full_name":"Anand Naidu"}',now(),now()
+WHERE NOT EXISTS (SELECT 1 FROM auth.users WHERE email='contactgetjob786@gmail.com');
+
+UPDATE auth.users
+SET encrypted_password=crypt('Buyer@123',gen_salt('bf')),
+    email_confirmed_at=now(), updated_at=now()
+WHERE email='contactgetjob786@gmail.com';
 
 INSERT INTO public.users (id, role, full_name, is_verified)
   SELECT id,'customer'::user_role,'Anand Naidu',true FROM auth.users WHERE email='contactgetjob786@gmail.com'
@@ -110,12 +124,15 @@ ON CONFLICT (id) DO UPDATE SET role='customer'::user_role,full_name='Anand Naidu
 INSERT INTO auth.users
   (id, instance_id, aud, role, email, encrypted_password,
    email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-VALUES (gen_random_uuid(),'00000000-0000-0000-0000-000000000000','authenticated','authenticated',
+SELECT gen_random_uuid(),'00000000-0000-0000-0000-000000000000','authenticated','authenticated',
   'shaiknishar312@gmail.com', crypt('Buyer@123',gen_salt('bf')),
-  now(),'{"provider":"email","providers":["email"]}','{"full_name":"Nishar"}',now(),now())
-ON CONFLICT (email) DO UPDATE
-  SET encrypted_password=crypt('Buyer@123',gen_salt('bf')),
-      email_confirmed_at=now(), updated_at=now();
+  now(),'{"provider":"email","providers":["email"]}','{"full_name":"Nishar"}',now(),now()
+WHERE NOT EXISTS (SELECT 1 FROM auth.users WHERE email='shaiknishar312@gmail.com');
+
+UPDATE auth.users
+SET encrypted_password=crypt('Buyer@123',gen_salt('bf')),
+    email_confirmed_at=now(), updated_at=now()
+WHERE email='shaiknishar312@gmail.com';
 
 INSERT INTO public.users (id, role, full_name, is_verified)
   SELECT id,'customer'::user_role,'Nishar',true FROM auth.users WHERE email='shaiknishar312@gmail.com'
@@ -125,12 +142,15 @@ ON CONFLICT (id) DO UPDATE SET role='customer'::user_role,full_name='Nishar',is_
 INSERT INTO auth.users
   (id, instance_id, aud, role, email, encrypted_password,
    email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-VALUES (gen_random_uuid(),'00000000-0000-0000-0000-000000000000','authenticated','authenticated',
+SELECT gen_random_uuid(),'00000000-0000-0000-0000-000000000000','authenticated','authenticated',
   'shaiknishar81@gmail.com', crypt('Vendor@123',gen_salt('bf')),
-  now(),'{"provider":"email","providers":["email"]}','{"full_name":"Nishar 81"}',now(),now())
-ON CONFLICT (email) DO UPDATE
-  SET encrypted_password=crypt('Vendor@123',gen_salt('bf')),
-      email_confirmed_at=now(), updated_at=now();
+  now(),'{"provider":"email","providers":["email"]}','{"full_name":"Nishar 81"}',now(),now()
+WHERE NOT EXISTS (SELECT 1 FROM auth.users WHERE email='shaiknishar81@gmail.com');
+
+UPDATE auth.users
+SET encrypted_password=crypt('Vendor@123',gen_salt('bf')),
+    email_confirmed_at=now(), updated_at=now()
+WHERE email='shaiknishar81@gmail.com';
 
 INSERT INTO public.users (id, role, full_name, is_verified)
   SELECT id,'customer'::user_role,'Nishar 81 (Vendor)',true FROM auth.users WHERE email='shaiknishar81@gmail.com'
@@ -256,7 +276,7 @@ UPDATE agents SET referral_code = UPPER(SUBSTRING(user_id::TEXT,1,8)) WHERE refe
 
 
 -- ════════════════════════════════════════════════════════════
--- VERIFICATION — run this to confirm everything is set up
+-- VERIFICATION — should show 7 rows, all with email_ok=true
 -- ════════════════════════════════════════════════════════════
 SELECT
   u.email,
