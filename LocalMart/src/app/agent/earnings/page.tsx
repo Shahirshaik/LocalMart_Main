@@ -168,7 +168,7 @@ export default async function AgentEarningsPage() {
             {(referrals ?? []).map((r) => (
               <div key={r.id} className="flex items-center justify-between rounded-xl bg-gray-50 px-3 py-2 text-sm">
                 <div>
-                  <p className="font-medium text-gray-800 text-xs">{(r.referred_user as { full_name: string | null } | null)?.full_name ?? "—"}</p>
+                  <p className="font-medium text-gray-800 text-xs">{((r.referred_user as unknown) as { full_name: string | null } | null)?.full_name ?? "—"}</p>
                   <p className="text-[10px] text-gray-400">
                     {new Date(r.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                   </p>
@@ -198,7 +198,7 @@ export default async function AgentEarningsPage() {
             {(allEarnings ?? []).map((e) => (
               <div key={e.id} className="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-2.5">
                 <div>
-                  <p className="text-sm font-medium text-gray-800">{e.description ?? (e.listing as { title: string } | null)?.title ?? "—"}</p>
+                  <p className="text-sm font-medium text-gray-800">{e.description ?? ((e.listing as unknown) as { title: string } | null)?.title ?? "—"}</p>
                   <p className="text-xs text-gray-400">{new Date(e.earned_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>
                 </div>
                 <div className="text-right">
