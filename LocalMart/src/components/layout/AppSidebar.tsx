@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ShoppingBag, LogOut, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/lib/i18n";
 
 type NavItem = { href: string; label: string; icon: string };
 
@@ -67,6 +68,7 @@ const ROLE_BADGE_COLOR: Record<string, string> = {
 };
 
 export function AppSidebar({ role, userName }: { role: Role; userName?: string }) {
+  const { t }    = useI18n();
   const pathname = usePathname();
   const router   = useRouter();
   const nav      = navFor(role);
@@ -122,11 +124,11 @@ export function AppSidebar({ role, userName }: { role: Role; userName?: string }
       <div className="px-3 py-4 border-t border-purple-900/30">
         <Link href="/" className="dash-sidebar-link mb-1">
           <span className="text-base w-5 text-center">🌐</span>
-          <span className="text-sm">View Marketplace</span>
+          <span className="text-sm">{t("common.browse") || "View Marketplace"}</span>
         </Link>
         <button onClick={handleLogout} className="dash-sidebar-link w-full text-left">
           <LogOut className="h-4 w-4 w-5 text-purple-400 shrink-0" />
-          <span className="text-sm">Sign Out</span>
+          <span className="text-sm">{t("nav.logout")}</span>
         </button>
       </div>
     </aside>

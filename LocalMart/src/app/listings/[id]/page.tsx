@@ -8,6 +8,7 @@ import { formatPrice, timeAgo, CATEGORY_ICONS, LISTING_TYPE_LABELS } from "@/lib
 import { MapPin, Clock, Eye, Tag, ArrowLeft } from "lucide-react";
 import type { UserRole, ListingFull } from "@/types/database";
 import { ContactAgentPanel } from "@/components/listings/ContactAgentPanel";
+import { FallbackImage } from "@/components/ui/FallbackImage";
 
 interface Props { params: Promise<{ id: string }> }
 
@@ -73,7 +74,16 @@ export default async function ListingDetailPage({ params }: Props) {
             <div className="lg:col-span-2 space-y-5">
               <div className="card overflow-hidden">
                 {l.images?.[0] ? (
-                  <img src={l.images[0]} alt={l.title} className="w-full h-72 md:h-96 object-cover" />
+                  <FallbackImage
+                    src={l.images[0]}
+                    alt={l.title}
+                    className="w-full h-72 md:h-96 object-cover"
+                    fallback={
+                      <div className="h-72 md:h-96 bg-gradient-to-br from-brand-400 to-purple-600 flex items-center justify-center">
+                        <span className="text-8xl opacity-70">{icon}</span>
+                      </div>
+                    }
+                  />
                 ) : (
                   <div className="h-72 md:h-96 bg-gradient-to-br from-brand-400 to-purple-600 flex items-center justify-center">
                     <span className="text-8xl opacity-70">{icon}</span>
@@ -191,12 +201,31 @@ export default async function ListingDetailPage({ params }: Props) {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {related.map((r) => (
                   <Link key={r.id} href={"/listings/" + r.id}
-                    className="card p-3 hover:shadow-md transition-all group">
-                    <div className="h-24 rounded-lg bg-gradient-to-br from-brand-100 to-purple-100 flex items-center justify-center mb-2">
-                      <span className="text-2xl">{icon}</span>
+                    className="card overflow-hidden hover:shadow-md transition-all group">
+                    <div className="relative w-full overflow-hidden" style={{ paddingBottom: "66.66%" }}>
+                      <div className="absolute inset-0">
+                        {r.images?.[0] ? (
+                          <FallbackImage
+                            src={r.images[0]}
+                            alt={r.title}
+                            className="w-full h-full object-cover"
+                            fallback={
+                              <div className="w-full h-full bg-gradient-to-br from-brand-100 to-purple-100 flex items-center justify-center">
+                                <span className="text-2xl">{icon}</span>
+                              </div>
+                            }
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-brand-100 to-purple-100 flex items-center justify-center">
+                            <span className="text-2xl">{icon}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-sm font-medium text-gray-900 line-clamp-1 group-hover:text-brand-600">{r.title}</p>
-                    <p className="text-sm font-bold text-brand-600 mt-0.5">{formatPrice(r.price, r.price_type)}</p>
+                    <div className="p-3">
+                      <p className="text-sm font-medium text-gray-900 line-clamp-1 group-hover:text-brand-600">{r.title}</p>
+                      <p className="text-sm font-bold text-brand-600 mt-0.5">{formatPrice(r.price, r.price_type)}</p>
+                    </div>
                   </Link>
                 ))}
               </div>

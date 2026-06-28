@@ -102,12 +102,12 @@ function PersonaCard({ p }: { p: typeof PERSONAS[0] }) {
           </div>
         </div>
 
-        {/* Stat badge */}
+        {/* Stat badge — green background */}
         <div className="relative z-10 text-right">
           <div className="inline-block px-3 py-2 rounded-2xl"
-            style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.2)" }}>
+            style={{ background: "rgba(16,185,129,0.85)", backdropFilter: "blur(8px)", border: "1px solid rgba(52,211,153,0.4)" }}>
             <div className="text-xl font-black text-white leading-none">{p.stat.value}</div>
-            <div className="text-xs text-white/70 mt-0.5 leading-tight max-w-20 text-right">{p.stat.label}</div>
+            <div className="text-xs text-emerald-100 mt-0.5 leading-tight max-w-20 text-right">{p.stat.label}</div>
           </div>
         </div>
 
@@ -143,7 +143,11 @@ function PersonaCard({ p }: { p: typeof PERSONAS[0] }) {
           <span className="text-xs text-gray-400">{p.location}</span>
         </div>
 
-        <p className="text-sm text-gray-600 leading-relaxed mb-4 line-clamp-3">"{p.story}"</p>
+        <p className="text-sm text-gray-600 leading-relaxed mb-4 line-clamp-3 italic">
+          <span className="text-brand-400 font-black text-lg leading-none mr-0.5">"</span>
+          {p.story}
+          <span className="text-brand-400 font-black text-lg leading-none ml-0.5">"</span>
+        </p>
 
         <Link href={`/user/browse?category=${p.tag}`}
           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
@@ -175,8 +179,13 @@ export default function PersonaShowcase() {
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {PERSONAS.map(p => <PersonaCard key={p.name} p={p} />)}
+        {/* Mobile: horizontal scroll; sm+: 2-col grid; lg+: 4-col grid */}
+        <div className="flex gap-5 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 no-scrollbar">
+          {PERSONAS.map(p => (
+            <div key={p.name} className="shrink-0 w-72 sm:w-auto">
+              <PersonaCard p={p} />
+            </div>
+          ))}
         </div>
       </div>
     </section>

@@ -14,6 +14,10 @@
     "language": "Language",
     "sell": "Sell",
     "login": "Log In",
+    "signup": "Sign Up",
+    "browse": "Browse",
+    "buy": "Buy",
+    "services": "Services",
     "post_free_ad": "+ POST FREE AD"
   },
   "categories": {

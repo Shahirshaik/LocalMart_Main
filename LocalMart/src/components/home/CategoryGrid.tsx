@@ -201,7 +201,7 @@ export default function CategoryGrid({ pinCode }: Props) {
             <Link
               key={cat.slug}
               href={`/user/browse?category=${cat.slug}${pinCode ? `&pin=${pinCode}` : ""}`}
-              className={`group relative rounded-2xl border overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${cat.bg} ${cat.border}`}
+              className={`group relative rounded-2xl border overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:scale-105 ${cat.bg} ${cat.border}`}
               style={{ animationDelay: `${i * 50}ms` }}
             >
               {/* Gradient accent bar at top */}

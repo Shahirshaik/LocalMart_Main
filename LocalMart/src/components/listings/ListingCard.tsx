@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import { MapPin, Clock, Eye, Tag } from "lucide-react";
 import { formatPrice, timeAgo, CATEGORY_ICONS, LISTING_TYPE_LABELS } from "@/lib/utils";
 import type { ListingFull } from "@/types/database";
@@ -21,31 +24,68 @@ const GRADIENTS = [
 
 interface Props { listing: ListingFull; index?: number; }
 
+// ── Isolated client image with error fallback ────────────────────────────────
+function ListingImage({ src, alt, gradient, icon }: {
+  src: string; alt: string; gradient: string; icon: string;
+}) {
+  const [error, setError] = useState(false);
+
+  if (error) {
+    return (
+      <div className={`w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+        <span className="text-5xl opacity-80">{icon}</span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className="w-full h-full object-cover"
+      onError={() => setError(true)}
+    />
+  );
+}
+
+// ── Card ─────────────────────────────────────────────────────────────────────
 export function ListingCard({ listing, index = 0 }: Props) {
   const gradient = GRADIENTS[index % GRADIENTS.length];
-  const icon = CATEGORY_ICONS[listing.category?.slug ?? "other"] ?? "\uD83D\uDCE6";
+  const icon = CATEGORY_ICONS[listing.category?.slug ?? "other"] ?? "📦";
 
   return (
     <Link href={`/listings/${listing.id}`}
       className="card flex flex-col overflow-hidden group hover:shadow-lg hover:-translate-y-0.5 transition-all">
-      {/* Image / gradient placeholder */}
-      <div className={`relative h-44 bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0`}>
-        {listing.images?.[0] ? (
-          <img src={listing.images[0]} alt={listing.title} className="h-full w-full object-cover" />
-        ) : (
-          <span className="text-5xl opacity-80 group-hover:scale-110 transition-transform">{icon}</span>
-        )}
-        <span className={`absolute top-3 left-3 badge ${TYPE_COLORS[listing.type] ?? "bg-white text-gray-700"}`}>
+
+      {/* ── Image container — fixed aspect ratio, never overflows ── */}
+      <div className="relative w-full overflow-hidden shrink-0" style={{ paddingBottom: "66.66%" /* 3:2 ratio */ }}>
+        <div className="absolute inset-0">
+          {listing.images?.[0] ? (
+            <ListingImage
+              src={listing.images[0]}
+              alt={listing.title}
+              gradient={gradient}
+              icon={icon}
+            />
+          ) : (
+            <div className={`w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+              <span className="text-5xl opacity-80 group-hover:scale-110 transition-transform">{icon}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Type badge */}
+        <span className={`absolute top-3 left-3 badge ${TYPE_COLORS[listing.type] ?? "bg-white text-gray-700"} z-10`}>
           {LISTING_TYPE_LABELS[listing.type]}
         </span>
         {listing.status === "featured" && (
-          <span className="absolute top-3 right-3 badge bg-yellow-400 text-yellow-900">
+          <span className="absolute top-3 right-3 badge bg-yellow-400 text-yellow-900 z-10">
             Featured
           </span>
         )}
       </div>
 
-      {/* Content */}
+      {/* ── Content ── */}
       <div className="flex flex-col flex-1 p-4 gap-2">
         <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-brand-600 transition-colors leading-snug">
           {listing.title}
@@ -63,7 +103,9 @@ export function ListingCard({ listing, index = 0 }: Props) {
             <div className="flex items-center gap-1.5 text-xs text-gray-500">
               <MapPin className="h-3 w-3 shrink-0 text-brand-400" />
               <span className="truncate">
-                {[listing.area || listing.village?.name, listing.city, listing.district || listing.village?.region, listing.state || listing.village?.state]
+                {[listing.area || listing.village?.name, listing.city,
+                  listing.district || listing.village?.region,
+                  listing.state || listing.village?.state]
                   .filter(Boolean).slice(0, 3).join(", ")}
               </span>
             </div>

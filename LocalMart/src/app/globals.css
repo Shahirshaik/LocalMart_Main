@@ -169,6 +169,75 @@
   .data-table tr:last-child td { @apply border-0; }
   .data-table tr:hover td { @apply bg-purple-50/50; }
 
+  /* ── Public Navbar (forces brand theme over default white) ── */
+  .site-navbar {
+    background: linear-gradient(135deg, #1E0A3C 0%, #3B0764 60%, #4C1D95 100%);
+    @apply sticky top-0 z-50 border-b border-purple-900/40;
+    box-shadow: 0 2px 16px rgba(30, 10, 60, 0.5);
+  }
+  .site-navbar .logo-text     { @apply text-white font-bold; }
+  .site-navbar .logo-accent   { @apply text-gold; }
+  .site-navbar .logo-icon-bg  { background: rgba(255,255,255,0.15); }
+
+  /* ── nav-link: used by Navbar component ── */
+  .nav-link {
+    @apply rounded-lg px-3 py-2 text-sm font-medium text-purple-200 transition-all hover:bg-white/10 hover:text-white;
+  }
+  .nav-link.active { @apply bg-white/15 text-white; }
+
+  /* ── Post Ad button in public navbar ── */
+  .btn-post-ad {
+    @apply inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold text-royal-dark transition-all hover:opacity-90 active:scale-95;
+    background: linear-gradient(135deg, #F59E0B, #FDE68A);
+    box-shadow: 0 2px 10px rgba(245,158,11,0.4);
+  }
+
+  /* ── Action buttons: marigold CTA ── */
+  .btn-marigold {
+    background: linear-gradient(135deg, #F59E0B, #FBBF24);
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-all hover:opacity-90 hover:shadow-glow-gold active:scale-95;
+    box-shadow: 0 3px 14px rgba(245,158,11,0.35);
+  }
+  .btn-mint {
+    background: linear-gradient(135deg, #10B981, #34D399);
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-all hover:opacity-90 hover:shadow-glow-mint active:scale-95;
+    box-shadow: 0 3px 14px rgba(16,185,129,0.35);
+  }
+
+  /* ── Listing card (replaces stock OLX white grid) ── */
+  .listing-card {
+    @apply rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm transition-all duration-200;
+    @apply hover:shadow-md hover:-translate-y-1;
+  }
+  .listing-card-img {
+    @apply relative w-full aspect-[4/3] bg-gradient-to-br from-purple-50 to-brand-100 overflow-hidden;
+  }
+  .listing-card-body { @apply p-3; }
+  .listing-card-price {
+    @apply text-base font-bold;
+    color: #3B0764;
+  }
+  .listing-card-title { @apply text-sm font-medium text-gray-800 line-clamp-2; }
+  .listing-card-meta  { @apply text-xs text-gray-500 mt-1 flex items-center gap-1; }
+
+  /* ── Super-App category tile (homepage grid) ── */
+  .superapp-tile {
+    @apply flex flex-col items-center gap-2 p-3 rounded-2xl cursor-pointer transition-all duration-200;
+    @apply hover:-translate-y-1 hover:shadow-md;
+  }
+  .superapp-tile-icon {
+    @apply w-14 h-14 rounded-2xl flex items-center justify-center text-2xl;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .superapp-tile-label { @apply text-xs font-semibold text-gray-700 text-center leading-tight; }
+
+  /* ── Image card fallback ── */
+  .img-fallback {
+    @apply w-full h-full flex flex-col items-center justify-center;
+  }
+  .img-fallback-emoji { @apply text-4xl mb-1; }
+  .img-fallback-label { @apply text-xs font-medium text-white/80 text-center; }
+
   /* ── Vertical Category Cards ── */
   .vertical-card {
     @apply flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border border-gray-100 bg-white cursor-pointer transition-all duration-200;
@@ -222,6 +291,10 @@
    UTILITIES
 ───────────────────────────────────────────────────────────── */
 @layer utilities {
+  /* Hide scrollbar but keep scrolling functional */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
   .gradient-text {
     background: linear-gradient(135deg, #F59E0B 0%, #F43F5E 40%, #A78BFA 80%, #7C3AED 100%);
     -webkit-background-clip: text;

@@ -49,7 +49,7 @@ function Navbar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 inset-x-0 z-50 bg-white/96 backdrop-blur-md border-b border-gray-100"
+    <nav className="sticky top-0 z-50 bg-white border-b border-gray-100"
       style={{ boxShadow: "0 1px 16px rgba(0,0,0,0.06)" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
 
@@ -81,16 +81,16 @@ function Navbar() {
         {/* CTA buttons */}
         <div className="flex items-center gap-3">
           <Link href="/auth/login"
-            className="hidden sm:block text-sm font-semibold text-gray-700 hover:text-purple-700 transition-colors">
-            Sign in
+            className="hidden sm:block text-sm font-semibold border border-gray-200 rounded-full px-4 py-2 text-gray-700 hover:border-brand-400 hover:text-brand-700 transition-colors">
+            Sign In
           </Link>
           <Link href="/auth/signup"
-            className="hidden sm:flex items-center gap-1.5 text-sm font-bold text-white px-4 py-2 rounded-xl transition-all hover:opacity-90"
+            className="hidden sm:flex items-center gap-1.5 text-sm font-bold text-white px-5 py-2 rounded-full transition-all hover:opacity-90"
             style={{ background: "linear-gradient(135deg, #4C1D95, #7C3AED)", boxShadow: "0 2px 12px rgba(124,58,237,0.4)" }}>
             Get Started Free
           </Link>
           <button onClick={() => setOpen(o => !o)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors">
+            className="md:hidden p-2.5 min-h-[44px] min-w-[44px] rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center">
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
@@ -116,7 +116,7 @@ function Navbar() {
 
 function Hero() {
   return (
-    <section className="hero-gradient pt-20 pb-0 relative overflow-hidden">
+    <section className="hero-gradient pt-0 pb-0 relative overflow-hidden">
       {/* Ambient light orbs */}
       <div className="absolute top-16 left-[8%] h-80 w-80 rounded-full blur-3xl opacity-20 pointer-events-none"
         style={{ background: "radial-gradient(circle, #A78BFA, transparent)" }} />
@@ -154,6 +154,33 @@ function Hero() {
             every Indian service, hyperlocal to your{" "}
             <span className="text-white font-bold">PIN code</span>.
           </p>
+        </div>
+
+        {/* Category icon pill row — horizontal scroll on mobile */}
+        <div className="overflow-x-auto pb-2 mb-10 -mx-4 px-4 sm:mx-0 sm:px-0 no-scrollbar">
+          <div className="flex items-center gap-2 min-w-max sm:flex-wrap sm:justify-center">
+            {[
+              { icon: "🥬", label: "Vegetables" },
+              { icon: "🍽️", label: "Tiffin" },
+              { icon: "🔥", label: "Gas Cylinders" },
+              { icon: "🏠", label: "Property" },
+              { icon: "🔧", label: "Mechanics" },
+              { icon: "💼", label: "Jobs" },
+              { icon: "🚗", label: "Vehicles" },
+              { icon: "📱", label: "Electronics" },
+            ].map(cat => (
+              <Link key={cat.label} href={`/listings?q=${encodeURIComponent(cat.label.toLowerCase())}`}
+                className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all hover:scale-105"
+                style={{
+                  background: "rgba(255,255,255,0.10)",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  color: "rgba(255,255,255,0.85)",
+                }}>
+                <span>{cat.icon}</span>
+                <span className="whitespace-nowrap">{cat.label}</span>
+              </Link>
+            ))}
+          </div>
         </div>
 
         {/* Smart search */}
@@ -222,6 +249,25 @@ function Hero() {
             </div>
           </div>
         </div>
+
+        {/* Stats row */}
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mt-12">
+          {[
+            { icon: "🏡", num: "6L+",  label: "Villages" },
+            { icon: "📮", num: "19K+", label: "PIN Codes" },
+            { icon: "📦", num: "12",   label: "Verticals" },
+            { icon: "🗺️", num: "28+",  label: "States & UTs" },
+            { icon: "🤖", num: "3",    label: "AI Agents" },
+            { icon: "🇮🇳", num: "100%", label: "Made in India" },
+          ].map(s => (
+            <div key={s.label} className="text-center rounded-2xl py-3 px-2"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
+              <div className="text-lg mb-0.5">{s.icon}</div>
+              <div className="text-base font-black text-yellow-300">{s.num}</div>
+              <div className="text-[11px] text-purple-400">{s.label}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -257,7 +303,10 @@ function HowItWorks() {
                 <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${s.gradient} flex items-center justify-center text-2xl shadow-lg`}>
                   {s.icon}
                 </div>
-                <span className="text-xs font-black text-gray-300 tracking-widest">{s.step}</span>
+                <div className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-black text-white"
+                  style={{ background: "linear-gradient(135deg, #4C1D95, #7C3AED)" }}>
+                  {parseInt(s.step, 10)}
+                </div>
               </div>
 
               <h3 className="font-black text-gray-900 mb-2 text-base">{s.title}</h3>
@@ -518,9 +567,9 @@ function FinalCTA() {
 
 function Footer() {
   return (
-    <footer className="bg-gray-950 text-gray-500 py-10 px-4">
+    <footer className="py-10 px-4" style={{ background: "#1e1b4b", color: "#9ca3af" }}>
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-6 border-b border-gray-800 pb-8 mb-8">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6 border-b border-white/10 pb-8 mb-8">
           <div className="flex items-center gap-2.5">
             <div className="h-8 w-8 rounded-xl flex items-center justify-center"
               style={{ background: "linear-gradient(135deg, #3B0764, #7C3AED)" }}>
@@ -537,7 +586,7 @@ function Footer() {
             ))}
           </div>
         </div>
-        <div className="text-center text-xs text-gray-600">
+        <div className="text-center text-xs" style={{ color: "#6b7280" }}>
           © 2025 LocalMart Technologies Pvt. Ltd. · CIN: U72900TG2025PTC000001 · All rights reserved
         </div>
       </div>
