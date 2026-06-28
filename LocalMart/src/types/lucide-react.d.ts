@@ -92,4 +92,12 @@ declare module "lucide-react" {
   export const UserPlus: LucideIcon;
   export const CheckSquare: LucideIcon;
   export const BarChart2: LucideIcon;
+  // i18n / chat / user panel additions
+  export const Heart: LucideIcon;
+  export const Bot: LucideIcon;
+  export const Check: LucideIcon;
+  export const CheckCheck: LucideIcon;
+  export const Circle: LucideIcon;
+  export const ArrowUpRight: LucideIcon;
+  export const CircleCheck: LucideIcon;
 }

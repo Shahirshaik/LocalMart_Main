@@ -1,6 +1,7 @@
 import { Inter } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { I18nProvider } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   title: { default: "LocalMart — Village Marketplace", template: "%s | LocalMart" },
@@ -38,7 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body className="font-sans antialiased bg-gray-50 text-gray-900">
-        {children}
+        <I18nProvider>{children}</I18nProvider>
       </body>
     </html>
   );

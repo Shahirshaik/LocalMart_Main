@@ -1,441 +1,565 @@
+"use client";
+
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import { ListingCard } from "@/components/listings/ListingCard";
-import {
-  Search, MapPin, TrendingUp, Shield, Zap, Users,
-  ArrowRight, Star, Megaphone, Tag, Sparkles, Phone,
-} from "lucide-react";
-import type { UserRole, ListingFull } from "@/types/database";
+import { useState } from "react";
+import { ShoppingBag, ArrowRight, Menu, X, Globe, ChevronRight } from "lucide-react";
 
-const CATEGORIES = [
-  { slug: "agriculture", name: "Agriculture", icon: "🌾", color: "bg-green-50 hover:bg-green-100 text-green-700 border border-green-100" },
-  { slug: "electronics", name: "Electronics", icon: "📱", color: "bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-100" },
-  { slug: "vehicles",    name: "Vehicles",    icon: "🚗", color: "bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-100" },
-  { slug: "property",    name: "Property",    icon: "🏡", color: "bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-100" },
-  { slug: "clothing",    name: "Clothing",    icon: "👗", color: "bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-100" },
-  { slug: "food",        name: "Food",        icon: "🍎", color: "bg-red-50 hover:bg-red-100 text-red-700 border border-red-100" },
-  { slug: "furniture",   name: "Furniture",   icon: "🛋️", color: "bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-100" },
-  { slug: "services",    name: "Services",    icon: "🔧", color: "bg-cyan-50 hover:bg-cyan-100 text-cyan-700 border border-cyan-100" },
-  { slug: "jobs",        name: "Jobs",        icon: "💼", color: "bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-100" },
-  { slug: "education",   name: "Education",   icon: "📚", color: "bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-100" },
-  { slug: "health",      name: "Health",      icon: "💊", color: "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100" },
-  { slug: "other",       name: "Other",       icon: "📦", color: "bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-100" },
+import HeroSearch     from "@/components/home/HeroSearch";
+import CategoryGrid   from "@/components/home/CategoryGrid";
+import TrustBar       from "@/components/home/TrustBar";
+import LiveTicker     from "@/components/home/LiveTicker";
+import PersonaShowcase from "@/components/home/PersonaShowcase";
+
+// ── Data ──────────────────────────────────────────────────────
+
+const HOW_IT_WORKS = [
+  {
+    step: "01",
+    icon: "📍",
+    title: "Pick Your Location",
+    desc: "Drill down to State → District → Mandal → Village → PIN. We remember your location.",
+    gradient: "from-violet-600 to-purple-500",
+  },
+  {
+    step: "02",
+    icon: "📋",
+    title: "Browse or Post",
+    desc: "All 12 verticals. Buy, sell, rent, hire. Free listing for everyone — always.",
+    gradient: "from-blue-600 to-indigo-500",
+  },
+  {
+    step: "03",
+    icon: "🤝",
+    title: "Agent Connects You",
+    desc: "A verified LocalMart agent facilitates the deal — trust on both sides.",
+    gradient: "from-emerald-600 to-teal-500",
+  },
+  {
+    step: "04",
+    icon: "⚡",
+    title: "Deal Closes Fast",
+    desc: "Real people, real transactions. Hyperlocal speed at national scale.",
+    gradient: "from-amber-600 to-orange-500",
+  },
 ];
 
-const FEATURES = [
-  { icon: Zap,        title: "Post in 60 Seconds", desc: "List your item or service for free in under a minute", color: "bg-yellow-100 text-yellow-600" },
-  { icon: MapPin,     title: "Village-Level Reach", desc: "Connect with buyers and sellers in your exact locality", color: "bg-blue-100 text-blue-600" },
-  { icon: Shield,     title: "Verified Listings",   desc: "Agents verify every listing for trust and quality", color: "bg-green-100 text-green-600" },
-  { icon: TrendingUp, title: "Grow Your Business",  desc: "Services and products reach thousands of local users", color: "bg-purple-100 text-purple-600" },
-];
+// ── Navbar ────────────────────────────────────────────────────
 
-const TICKER_ITEMS = [
-  "🌾 Fresh vegetables available in Pamuru",
-  "🏡 House plot for sale in Markapur",
-  "💼 Daily wage jobs in Prakasam district",
-  "📱 Second-hand mobiles — best prices in Pamuru",
-  "🔧 Electrician available in Pamuru mandal",
-  "🚗 Auto-rickshaw for sale in Markapur",
-  "🍎 Mango crop directly from Pamuru farm",
-  "📚 Home tuition for 8th–10th in Pamuru",
-  "🌿 Red chilli (mirchi) available — Prakasam district",
-  "🐄 Jersey cow for sale — Pamuru area",
-  "🏗️ Construction materials — Markapur",
-  "👗 New & used clothing — Pamuru weekly bazaar",
-];
-
-export default async function HomePage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  let userRole: UserRole | null = null;
-  if (user) {
-    const { data } = await supabase.from("users").select("role").eq("id", user.id).single();
-    userRole = data?.role ?? null;
-  }
-
-  const { data: featuredListings } = await supabase
-    .from("listings")
-    .select("*, village:villages(*), category:categories(*)")
-    .eq("status", "featured")
-    .order("created_at", { ascending: false })
-    .limit(4);
-
-  const { data: recentListings } = await supabase
-    .from("listings")
-    .select("*, village:villages(*), category:categories(*)")
-    .eq("status", "active")
-    .order("created_at", { ascending: false })
-    .limit(8);
-
-  const { count: totalListings } = await supabase
-    .from("listings").select("*", { count: "exact", head: true }).eq("status", "active");
-  const { count: totalVillages } = await supabase
-    .from("villages").select("*", { count: "exact", head: true }).eq("is_active", true);
-  const { count: totalUsers } = await supabase
-    .from("users").select("*", { count: "exact", head: true });
-
-  const tickerText = TICKER_ITEMS.join("   •   ");
+function Navbar() {
+  const [open, setOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar userRole={userRole} userEmail={user?.email} />
+    <nav className="fixed top-0 inset-x-0 z-50 bg-white/96 backdrop-blur-md border-b border-gray-100"
+      style={{ boxShadow: "0 1px 16px rgba(0,0,0,0.06)" }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
 
-      {/* ── Announcement Ticker ──────────────────────────────── */}
-      <div className="bg-brand-700 text-white py-2 overflow-hidden">
-        <div className="flex items-center gap-3 px-4">
-          <span className="shrink-0 flex items-center gap-1.5 bg-yellow-400 text-gray-900 text-xs font-bold px-2.5 py-1 rounded-full">
-            <Megaphone className="h-3 w-3" /> LIVE
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="h-9 w-9 rounded-xl flex items-center justify-center"
+            style={{ background: "linear-gradient(135deg, #3B0764, #7C3AED)" }}>
+            <ShoppingBag className="text-white" style={{ width: 18, height: 18 }} />
+          </div>
+          <span className="text-xl font-black tracking-tight">
+            Local<span style={{ color: "#7C3AED" }}>Mart</span>
           </span>
-          <div className="overflow-hidden flex-1">
-            <div className="animate-marquee whitespace-nowrap text-sm text-purple-100 inline-block">
-              {tickerText}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{tickerText}
+          <span className="hidden sm:inline text-xs font-bold text-white px-2.5 py-1 rounded-full"
+            style={{ background: "#F59E0B" }}>
+            🇮🇳 Made in India
+          </span>
+        </Link>
+
+        {/* Desktop nav */}
+        <div className="hidden md:flex items-center gap-1">
+          {["Verticals", "Agents", "AI Platform", "About"].map(l => (
+            <a key={l} href="#"
+              className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-purple-700 rounded-lg hover:bg-purple-50 transition-colors">
+              {l}
+            </a>
+          ))}
+        </div>
+
+        {/* CTA buttons */}
+        <div className="flex items-center gap-3">
+          <Link href="/auth/login"
+            className="hidden sm:block text-sm font-semibold text-gray-700 hover:text-purple-700 transition-colors">
+            Sign in
+          </Link>
+          <Link href="/auth/signup"
+            className="hidden sm:flex items-center gap-1.5 text-sm font-bold text-white px-4 py-2 rounded-xl transition-all hover:opacity-90"
+            style={{ background: "linear-gradient(135deg, #4C1D95, #7C3AED)", boxShadow: "0 2px 12px rgba(124,58,237,0.4)" }}>
+            Get Started Free
+          </Link>
+          <button onClick={() => setOpen(o => !o)}
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors">
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      {open && (
+        <div className="md:hidden px-4 pb-4 pt-2 border-t border-gray-100 bg-white/98">
+          <div className="flex gap-3">
+            <Link href="/auth/login" className="flex-1 text-center py-2.5 text-sm font-semibold border border-gray-200 rounded-xl hover:bg-gray-50">Sign in</Link>
+            <Link href="/auth/signup" className="flex-1 text-center py-2.5 text-sm font-bold text-white rounded-xl"
+              style={{ background: "linear-gradient(135deg, #4C1D95, #7C3AED)" }}>
+              Get Started
+            </Link>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+}
+
+// ── Hero Section ──────────────────────────────────────────────
+
+function Hero() {
+  return (
+    <section className="hero-gradient pt-20 pb-0 relative overflow-hidden">
+      {/* Ambient light orbs */}
+      <div className="absolute top-16 left-[8%] h-80 w-80 rounded-full blur-3xl opacity-20 pointer-events-none"
+        style={{ background: "radial-gradient(circle, #A78BFA, transparent)" }} />
+      <div className="absolute top-32 right-[6%] h-60 w-60 rounded-full blur-3xl opacity-15 pointer-events-none"
+        style={{ background: "radial-gradient(circle, #F59E0B, transparent)" }} />
+      <div className="absolute bottom-0 left-[40%] h-40 w-80 rounded-full blur-3xl opacity-10 pointer-events-none"
+        style={{ background: "radial-gradient(circle, #7C3AED, transparent)" }} />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-12 pb-20 relative z-10">
+        {/* Badge */}
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold"
+            style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "#FDE68A" }}>
+            <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
+            India's Most Trusted Hyper-Local Marketplace · 6,00,000+ Villages
+          </div>
+        </div>
+
+        {/* Headline */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.08] tracking-tight mb-5"
+            style={{ textShadow: "0 2px 20px rgba(0,0,0,0.25)" }}>
+            हर गाँव का{" "}
+            <span style={{
+              background: "linear-gradient(90deg, #FCD34D, #F59E0B, #FBBF24)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}>
+              अपना बाज़ार
+            </span>
+          </h1>
+          <p className="text-purple-200 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed font-medium">
+            From farm-fresh vegetables to real estate, gas, mechanics, and jobs —
+            every Indian service, hyperlocal to your{" "}
+            <span className="text-white font-bold">PIN code</span>.
+          </p>
+        </div>
+
+        {/* Smart search */}
+        <div className="mb-14">
+          <HeroSearch />
+        </div>
+
+        {/* Two CTAs */}
+        <div className="flex flex-wrap justify-center gap-4 mb-16">
+          <Link href="/auth/signup"
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-base transition-all hover:opacity-90 hover:scale-105"
+            style={{ background: "linear-gradient(135deg, #F59E0B, #FBBF24)", color: "#1E0A3C", boxShadow: "0 4px 24px rgba(245,158,11,0.45)" }}>
+            Post Free Listing ⚡
+            <ArrowRight className="h-5 w-5" />
+          </Link>
+          <Link href="/auth/login"
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-sm text-white transition-all hover:bg-white/15"
+            style={{ background: "rgba(255,255,255,0.10)", border: "1px solid rgba(255,255,255,0.2)" }}>
+            Browse Marketplace →
+          </Link>
+        </div>
+
+        {/* Location drill-down illustration */}
+        <div className="max-w-md mx-auto">
+          <div className="rounded-2xl overflow-hidden"
+            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(10px)" }}>
+            <div className="px-5 py-3 border-b border-white/10 flex items-center gap-2">
+              <div className="flex gap-1.5">
+                {["bg-red-400","bg-yellow-400","bg-green-400"].map(c => (
+                  <div key={c} className={`h-2.5 w-2.5 rounded-full ${c} opacity-70`} />
+                ))}
+              </div>
+              <span className="text-purple-300 text-xs font-medium">Location Navigator</span>
+            </div>
+            <div className="px-5 py-4">
+              {[
+                { level: "State",    value: "Telangana",        icon: "🗺️" },
+                { level: "District", value: "Nalgonda",         icon: "📍" },
+                { level: "Mandal",   value: "Miryalaguda",      icon: "🏘️" },
+                { level: "Village",  value: "Suryapet Village",  icon: "🏡" },
+                { level: "PIN Code", value: "508 207",          icon: "📮", highlight: true },
+              ].map((row, i) => (
+                <div key={row.level}
+                  className={`flex items-center gap-3 py-2 ${i < 4 ? "border-b border-white/8" : ""}`}>
+                  <div className="h-7 w-7 rounded-lg flex items-center justify-center text-sm shrink-0"
+                    style={{ background: "rgba(255,255,255,0.08)" }}>
+                    {row.icon}
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-purple-400 text-xs">{row.level}</div>
+                    <div className={`text-sm font-semibold ${row.highlight ? "text-yellow-300" : "text-white"}`}>
+                      {row.value}
+                    </div>
+                  </div>
+                  {i < 4 && <ChevronRight className="h-3.5 w-3.5 text-purple-600" />}
+                </div>
+              ))}
+            </div>
+            {/* Active listing badge */}
+            <div className="px-5 pb-4">
+              <div className="flex items-center justify-between rounded-xl px-4 py-2.5"
+                style={{ background: "rgba(167,139,250,0.15)", border: "1px solid rgba(167,139,250,0.25)" }}>
+                <span className="text-xs text-purple-300">Active listings in 508 207</span>
+                <span className="text-sm font-black text-yellow-300">247</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
+    </section>
+  );
+}
 
-      {/* ── Hero ─────────────────────────────────────────────── */}
-      <section className="hero-gradient text-white">
-        {/* Floating decorative blobs */}
-        <div className="absolute top-20 left-10 text-4xl animate-float opacity-30 pointer-events-none select-none">🌾</div>
-        <div className="absolute top-32 right-16 text-3xl animate-float-delay opacity-25 pointer-events-none select-none">🏡</div>
-        <div className="absolute bottom-24 left-1/4 text-2xl animate-float-slow opacity-20 pointer-events-none select-none">📱</div>
-        <div className="absolute top-16 right-1/3 text-2xl animate-float opacity-20 pointer-events-none select-none">🚗</div>
+// ── How It Works ──────────────────────────────────────────────
 
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-16 md:py-24 relative z-10">
-          <div className="max-w-2xl mx-auto text-center animate-fade-in">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-4 py-1.5 text-sm font-medium mb-6 border border-white/20">
-              <Star className="h-3.5 w-3.5 text-yellow-300" fill="currentColor" />
-              <span>India&apos;s Village Marketplace</span>
-            </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-6">
-              Buy &amp; Sell in Your{" "}
-              <span className="text-yellow-300 drop-shadow-lg">Village</span>
-            </h1>
-            <p className="text-lg text-purple-100 mb-10 max-w-lg mx-auto">
-              LocalMart connects you with buyers, sellers and services right in your neighborhood. Free, fast and trusted.
-            </p>
-            <form action="/listings" method="GET" className="flex flex-col sm:flex-row gap-2 max-w-xl mx-auto">
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input name="q" placeholder="Search listings, services, items..."
-                  className="w-full rounded-xl border-0 bg-white pl-11 pr-4 py-3.5 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg text-sm" />
-              </div>
-              <button type="submit"
-                className="rounded-xl bg-yellow-400 px-6 py-3.5 text-sm font-semibold text-gray-900 hover:bg-yellow-300 transition-colors shadow-lg">
-                Search
-              </button>
-            </form>
-            <div className="mt-6 flex flex-wrap justify-center gap-4 text-sm text-purple-200">
-              <Link href="/listings?type=sell"    className="hover:text-white transition-colors">Buy Items</Link>
-              <Link href="/listings?type=service" className="hover:text-white transition-colors">Find Services</Link>
-              <Link href="/listings?type=rent"    className="hover:text-white transition-colors">Rentals</Link>
-              <Link href="/listings/new"          className="hover:text-white transition-colors font-semibold text-yellow-300">Post Free ✨</Link>
-            </div>
+function HowItWorks() {
+  return (
+    <section className="py-20 px-4 bg-white">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-14">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-5"
+            style={{ background: "rgba(124,58,237,0.08)", color: "#6D28D9", border: "1px solid rgba(124,58,237,0.15)" }}>
+            🚀 Simple & Fast
           </div>
+          <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-3">How LocalMart Works</h2>
+          <p className="text-gray-500 text-lg max-w-xl mx-auto">From registration to deal close in under 10 minutes.</p>
         </div>
-        <div className="h-12 bg-gray-50" style={{ clipPath: "ellipse(55% 100% at 50% 100%)" }} />
-      </section>
 
-      {/* ── Stats ────────────────────────────────────────────── */}
-      <section className="bg-gray-50 pb-6">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {HOW_IT_WORKS.map((s, i) => (
+            <div key={s.step}
+              className="group relative bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+              style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
+              {/* Connector line */}
+              {i < HOW_IT_WORKS.length - 1 && (
+                <div className="hidden lg:block absolute top-11 left-full w-6 h-0.5 bg-gray-100 z-10" />
+              )}
+
+              {/* Step number + icon */}
+              <div className="flex items-center gap-3 mb-5">
+                <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${s.gradient} flex items-center justify-center text-2xl shadow-lg`}>
+                  {s.icon}
+                </div>
+                <span className="text-xs font-black text-gray-300 tracking-widest">{s.step}</span>
+              </div>
+
+              <h3 className="font-black text-gray-900 mb-2 text-base">{s.title}</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">{s.desc}</p>
+
+              {/* Hover underline accent */}
+              <div className={`absolute bottom-0 left-6 right-6 h-0.5 rounded-full bg-gradient-to-r ${s.gradient} opacity-0 group-hover:opacity-100 transition-opacity`} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── AI Section ────────────────────────────────────────────────
+
+function AISection() {
+  const AGENTS = [
+    { icon: "⚙️", name: "Operations Agent",  role: "Supply & Demand Intelligence", desc: "Scans every PIN code 5× daily. Detects shortages, flags surpluses, dispatches tasks." },
+    { icon: "📊", name: "Marketing Agent",   role: "Social Media Automation",       desc: "Writes localized posts in EN/HI/TE. Posts to Instagram, Facebook, LinkedIn autonomously." },
+    { icon: "👥", name: "User Proxy Agent",  role: "Buyer–Seller Matchmaker",       desc: "Matches buyers to sellers with a 0–1 score algorithm. Handles WhatsApp inquiries end-to-end." },
+  ];
+
+  return (
+    <section className="py-20 px-4 relative overflow-hidden"
+      style={{ background: "linear-gradient(135deg, #0F0520 0%, #1E0A3C 35%, #2D1B69 60%, #4C1D95 85%, #6D28D9 100%)" }}>
+
+      {/* Background pattern */}
+      <div className="absolute inset-0 pointer-events-none opacity-5">
+        <svg width="100%" height="100%">
+          <defs>
+            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grid)" />
+        </svg>
+      </div>
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="text-center mb-14">
+          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold mb-6"
+            style={{ background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.3)", color: "#FCD34D" }}>
+            🤖 Autonomous AI Ecosystem
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">
+            Three AI Agents.<br />
+            <span style={{
+              background: "linear-gradient(90deg, #FCD34D, #F59E0B)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text"
+            }}>One Intelligent Marketplace.</span>
+          </h2>
+          <p className="text-purple-300 text-lg max-w-2xl mx-auto leading-relaxed">
+            Autonomous agents work 24/7 — but every high-impact action goes through a
+            Board → CEO approval loop before execution.
+          </p>
+        </div>
+
+        {/* Agent cards */}
+        <div className="grid sm:grid-cols-3 gap-5 mb-12">
+          {AGENTS.map((a, i) => (
+            <div key={a.name}
+              className="relative rounded-2xl p-6 group hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+              style={{
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                backdropFilter: "blur(10px)",
+              }}>
+              {/* Glow on hover */}
+              <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                style={{ background: "radial-gradient(circle at 50% 0%, rgba(167,139,250,0.12), transparent 70%)" }} />
+
+              <div className="flex items-start justify-between mb-4">
+                <div className="h-12 w-12 rounded-2xl flex items-center justify-center text-2xl"
+                  style={{ background: "linear-gradient(135deg, rgba(124,58,237,0.6), rgba(76,29,149,0.6))", border: "1px solid rgba(167,139,250,0.3)" }}>
+                  {a.icon}
+                </div>
+                <span className="text-xs font-bold text-purple-400 bg-purple-900/30 px-2 py-0.5 rounded-full">
+                  Agent {i + 1}
+                </span>
+              </div>
+
+              <h3 className="font-black text-white text-base mb-1">{a.name}</h3>
+              <p className="text-purple-400 text-xs font-semibold mb-3">{a.role}</p>
+              <p className="text-purple-300 text-sm leading-relaxed">{a.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Approval chain visualization */}
+        <div className="rounded-2xl p-6 text-center"
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <p className="text-purple-400 text-xs font-bold uppercase tracking-widest mb-4">Approval Loop — Humans Always in Control</p>
+          <div className="flex items-center justify-center gap-2 flex-wrap">
             {[
-              { value: totalListings ?? 0, label: "Active Listings", icon: "📋" },
-              { value: totalVillages ?? 0, label: "Villages",         icon: "🏘️" },
-              { value: totalUsers ?? 0,    label: "Members",          icon: "👥" },
-            ].map((stat) => (
-              <div key={stat.label} className="card p-4 text-center hover:shadow-md transition-shadow">
-                <div className="text-2xl mb-1">{stat.icon}</div>
-                <p className="text-2xl font-extrabold text-brand-600">{stat.value.toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-1">{stat.label}</p>
+              { label: "AI Agent", icon: "🤖", color: "from-violet-600 to-purple-500" },
+              { label: "Board Review", icon: "👥", color: "from-amber-600 to-yellow-500" },
+              { label: "CEO Sign-off", icon: "👑", color: "from-purple-600 to-indigo-500" },
+              { label: "Execute", icon: "⚡", color: "from-green-600 to-emerald-500" },
+            ].map((step, i) => (
+              <div key={step.label} className="flex items-center gap-2">
+                <div className="flex flex-col items-center">
+                  <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${step.color} flex items-center justify-center text-lg`}>
+                    {step.icon}
+                  </div>
+                  <span className="text-xs text-purple-400 font-medium mt-1">{step.label}</span>
+                </div>
+                {i < 3 && (
+                  <svg className="h-4 w-4 text-purple-600 mx-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                )}
               </div>
             ))}
           </div>
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      <main className="flex-1 bg-gray-50">
+// ── India Coverage ────────────────────────────────────────────
 
-        {/* ── Categories ───────────────────────────────────────── */}
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 py-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="section-title">Browse by Category</h2>
-            <Link href="/listings" className="text-sm font-medium text-brand-600 hover:text-brand-700 flex items-center gap-1">
-              View all <ArrowRight className="h-4 w-4" />
-            </Link>
+function IndiaCoverage() {
+  const NUMBERS = [
+    { val: "28+",   label: "States & UTs",   icon: "🗺️" },
+    { val: "793",   label: "Districts",       icon: "🏙️" },
+    { val: "5,000+",label: "Taluks & Blocks", icon: "🏘️" },
+    { val: "6L+",   label: "Villages",        icon: "🏡" },
+  ];
+
+  return (
+    <section className="py-20 px-4" style={{ background: "linear-gradient(180deg, #FAF5FF 0%, #FFFFFF 100%)" }}>
+      <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+        <div>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold mb-6"
+            style={{ background: "rgba(124,58,237,0.1)", color: "#6D28D9", border: "1px solid rgba(124,58,237,0.2)" }}>
+            <Globe className="h-3 w-3" /> All of India
           </div>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-            {CATEGORIES.map((cat) => (
-              <Link key={cat.slug} href={"/listings?category=" + cat.slug}
-                className={"flex flex-col items-center gap-2 rounded-2xl p-4 text-center transition-all hover:shadow-md hover:-translate-y-1 " + cat.color}>
-                <span className="text-3xl">{cat.icon}</span>
-                <span className="text-xs font-semibold">{cat.name}</span>
-              </Link>
+          <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-4 leading-tight">
+            Pinpoint accuracy down to the{" "}
+            <span style={{
+              background: "linear-gradient(135deg, #4C1D95, #7C3AED)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text"
+            }}>6-digit PIN code</span>
+          </h2>
+          <p className="text-gray-600 text-lg mb-10 leading-relaxed">
+            Every state, district, taluk, and village structured so you always transact with someone genuinely nearby.
+          </p>
+          <div className="grid grid-cols-2 gap-4 mb-10">
+            {NUMBERS.map(n => (
+              <div key={n.label} className="rounded-2xl border border-purple-100 bg-white p-5"
+                style={{ boxShadow: "0 2px 12px rgba(124,58,237,0.06)" }}>
+                <div className="text-2xl mb-2">{n.icon}</div>
+                <div className="text-2xl font-black" style={{ color: "#6D28D9" }}>{n.val}</div>
+                <div className="text-xs text-gray-400 font-medium mt-0.5">{n.label}</div>
+              </div>
             ))}
           </div>
-        </section>
+          <Link href="/auth/signup"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm text-white transition-all hover:opacity-90"
+            style={{ background: "linear-gradient(135deg, #4C1D95, #7C3AED)", boxShadow: "0 4px 16px rgba(124,58,237,0.3)" }}>
+            Start in Your Village <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
 
-        {/* ── Advertisement Banner 1 ───────────────────────────── */}
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 pb-8">
-          <div className="ad-banner-primary rounded-3xl p-6 sm:p-8 text-white overflow-hidden relative">
-            {/* Decorative circles */}
-            <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
-            <div className="absolute -bottom-12 -left-6 w-52 h-52 rounded-full bg-white/5 pointer-events-none" />
-            <div className="absolute top-4 right-40 w-16 h-16 rounded-full bg-white/10 pointer-events-none" />
+        {/* Map-style PIN illustration */}
+        <div className="relative">
+          <div className="rounded-3xl overflow-hidden"
+            style={{ background: "linear-gradient(145deg, #1E0A3C, #2D1B69, #1E0A3C)", padding: "2px" }}>
+            <div className="rounded-3xl overflow-hidden"
+              style={{ background: "linear-gradient(145deg, #0F0520, #1E0A3C)" }}>
 
-            <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div>
-                <div className="inline-flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1 text-xs font-semibold mb-3">
-                  <Sparkles className="h-3 w-3 text-yellow-300" /> SPECIAL OFFER
-                </div>
-                <h3 className="text-2xl sm:text-3xl font-extrabold mb-2">
-                  🎉 Post Your Listing FREE Today!
-                </h3>
-                <p className="text-white/80 text-sm max-w-md">
-                  Reach thousands of buyers in your village. No hidden charges, no commission. Just post and sell!
-                </p>
+              {/* India PIN map placeholder */}
+              <div className="relative h-64 flex items-center justify-center overflow-hidden">
+                {/* Decorative dots resembling PIN code coverage */}
+                {[
+                  { x: "20%", y: "25%", size: "h-3 w-3", opacity: 0.9, color: "#A78BFA" },
+                  { x: "35%", y: "40%", size: "h-4 w-4", opacity: 1,   color: "#F59E0B" },
+                  { x: "55%", y: "30%", size: "h-2 w-2", opacity: 0.7, color: "#34D399" },
+                  { x: "70%", y: "55%", size: "h-3 w-3", opacity: 0.8, color: "#60A5FA" },
+                  { x: "25%", y: "65%", size: "h-2 w-2", opacity: 0.6, color: "#A78BFA" },
+                  { x: "50%", y: "60%", size: "h-5 w-5", opacity: 1,   color: "#7C3AED", pulse: true },
+                  { x: "80%", y: "35%", size: "h-2 w-2", opacity: 0.5, color: "#FCD34D" },
+                  { x: "42%", y: "75%", size: "h-3 w-3", opacity: 0.8, color: "#F87171" },
+                  { x: "60%", y: "70%", size: "h-2 w-2", opacity: 0.6, color: "#34D399" },
+                  { x: "15%", y: "50%", size: "h-2 w-2", opacity: 0.5, color: "#A78BFA" },
+                ].map((dot, i) => (
+                  <div key={i}
+                    className={`absolute ${dot.size} rounded-full ${dot.pulse ? "animate-pulse" : ""}`}
+                    style={{ left: dot.x, top: dot.y, background: dot.color, opacity: dot.opacity, boxShadow: `0 0 8px ${dot.color}` }} />
+                ))}
+
+                {/* Central India outline hint */}
+                <svg viewBox="0 0 200 220" className="absolute inset-0 w-full h-full opacity-10">
+                  <path d="M100 20 L140 40 L160 80 L150 120 L130 160 L100 190 L70 160 L50 120 L40 80 L60 40 Z"
+                    fill="none" stroke="white" strokeWidth="1" />
+                </svg>
+
+                <div className="text-4xl font-black text-white/10 select-none">INDIA</div>
               </div>
-              <div className="shrink-0 flex flex-col sm:flex-row gap-3">
-                <Link href="/listings/new"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-orange-600 hover:bg-yellow-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
-                  Post Free Now <ArrowRight className="h-4 w-4" />
-                </Link>
-                <Link href="/listings"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/15 border border-white/30 px-6 py-3 text-sm font-semibold text-white hover:bg-white/25 transition-all">
-                  Browse Deals
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
 
-        {/* ── Featured Listings ────────────────────────────────── */}
-        {featuredListings && featuredListings.length > 0 && (
-          <section className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="section-title flex items-center gap-2">
-                <Star className="h-5 w-5 text-yellow-400" fill="currentColor" />
-                Featured Listings
-              </h2>
-              <Link href="/listings" className="text-sm font-medium text-brand-600 hover:text-brand-700 flex items-center gap-1">
-                View all <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {(featuredListings as ListingFull[]).map((l, i) => (
-                <ListingCard key={l.id} listing={l} index={i} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* ── Advertisement Banner 2 ───────────────────────────── */}
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
-          <div className="ad-banner-secondary rounded-3xl overflow-hidden relative">
-            {/* Animated gradient orbs */}
-            <div className="absolute top-0 left-0 w-64 h-64 rounded-full bg-blue-500/20 blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 right-0 w-72 h-72 rounded-full bg-cyan-400/15 blur-3xl pointer-events-none" />
-
-            <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 p-6 sm:p-10">
-              {/* Left side – ad content */}
-              <div className="flex-1 text-white">
-                <div className="inline-flex items-center gap-1.5 bg-cyan-400/20 border border-cyan-400/30 rounded-full px-3 py-1 text-xs font-semibold text-cyan-300 mb-4">
-                  <Tag className="h-3 w-3" /> ADVERTISE WITH US
-                </div>
-                <h3 className="text-2xl sm:text-3xl font-extrabold mb-3 leading-snug">
-                  Grow Your Business<br />
-                  <span className="text-cyan-300">with LocalMart Ads</span>
-                </h3>
-                <p className="text-white/70 text-sm mb-5 max-w-sm">
-                  Put your shop, service or product in front of local buyers every day. Affordable plans starting from ₹99/month.
-                </p>
-                <div className="flex flex-wrap gap-3">
-                  <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 text-sm text-white/80">
-                    ✅ 5,000+ daily views
+              {/* Coverage stats */}
+              <div className="p-5 border-t border-white/8">
+                {["Telangana · 9 districts live", "Maharashtra · 35 districts live", "Karnataka · 30 districts live"].map(s => (
+                  <div key={s} className="flex items-center gap-2 mb-2 last:mb-0">
+                    <div className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
+                    <span className="text-xs text-purple-300">{s}</span>
                   </div>
-                  <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 text-sm text-white/80">
-                    ✅ Village targeting
-                  </div>
-                  <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 text-sm text-white/80">
-                    ✅ No tech skills needed
-                  </div>
-                </div>
-              </div>
-              {/* Right side – CTA card */}
-              <div className="shrink-0 glass rounded-2xl p-6 text-white text-center min-w-[200px]">
-                <div className="text-4xl mb-3">📣</div>
-                <p className="font-bold text-lg mb-1">Book Your Ad</p>
-                <p className="text-white/60 text-xs mb-4">Limited spots available</p>
-                <a href="tel:+919876543210"
-                  className="inline-flex items-center justify-center gap-2 w-full rounded-xl bg-cyan-400 text-gray-900 px-4 py-2.5 text-sm font-bold hover:bg-cyan-300 transition-all">
-                  <Phone className="h-4 w-4" /> Call Us
-                </a>
+                ))}
               </div>
             </div>
           </div>
-        </section>
 
-        {/* ── Recent Listings ──────────────────────────────────── */}
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 py-6 pb-10">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="section-title">Recent Listings</h2>
-            <Link href="/listings" className="text-sm font-medium text-brand-600 hover:text-brand-700 flex items-center gap-1">
-              View all <ArrowRight className="h-4 w-4" />
-            </Link>
+          {/* Floating badge */}
+          <div className="absolute -bottom-4 -right-4 bg-white rounded-2xl shadow-xl p-4 border border-purple-100">
+            <div className="text-xs text-gray-400 mb-1">Active in 508 207</div>
+            <div className="text-2xl font-black" style={{ color: "#6D28D9" }}>247</div>
+            <div className="text-xs text-gray-400">listings now</div>
           </div>
-          {recentListings && recentListings.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {(recentListings as ListingFull[]).map((l, i) => (
-                <ListingCard key={l.id} listing={l} index={i + 4} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-20 text-gray-400">
-              <p className="text-4xl mb-3">🛒</p>
-              <p className="font-medium">No listings yet — be the first to post!</p>
-              <Link href="/listings/new" className="btn-primary mt-4 inline-flex">Post a Free Listing</Link>
-            </div>
-          )}
-        </section>
+        </div>
+      </div>
+    </section>
+  );
+}
 
-        {/* ── Advertisement Banner 3 — Green ──────────────────── */}
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 pb-10">
-          <div className="ad-banner-green rounded-3xl p-6 sm:p-8 text-white overflow-hidden relative">
-            <div className="absolute -top-10 right-20 w-48 h-48 rounded-full bg-emerald-400/20 blur-2xl pointer-events-none" />
-            <div className="absolute bottom-0 left-10 w-40 h-40 rounded-full bg-green-300/10 blur-2xl pointer-events-none" />
+// ── Final CTA ─────────────────────────────────────────────────
 
-            <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-5">
-                <div className="text-5xl animate-float shrink-0">🌿</div>
-                <div>
-                  <div className="inline-flex items-center gap-1.5 bg-emerald-400/20 rounded-full px-3 py-1 text-xs font-semibold text-emerald-300 mb-2">
-                    🌱 LOCAL FARMERS
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-extrabold mb-1">
-                    Fresh from the Farm — Directly to You
-                  </h3>
-                  <p className="text-white/70 text-sm">
-                    Connect with local farmers and get fresh produce at fair prices. Support your community.
-                  </p>
-                </div>
-              </div>
-              <Link href="/listings?category=agriculture"
-                className="shrink-0 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-400 text-gray-900 px-6 py-3 text-sm font-bold hover:bg-emerald-300 transition-all shadow-lg whitespace-nowrap">
-                Shop Farm Fresh <ArrowRight className="h-4 w-4" />
-              </Link>
+function FinalCTA() {
+  return (
+    <section className="py-20 px-4"
+      style={{ background: "linear-gradient(135deg, #0F0520, #1E0A3C, #3B0764)" }}>
+      <div className="max-w-3xl mx-auto text-center">
+        <div className="text-5xl mb-6">🇮🇳</div>
+        <h2 className="text-3xl sm:text-5xl font-black text-white mb-4 leading-tight">
+          Start selling in your<br />village today
+        </h2>
+        <p className="text-purple-300 mb-10 text-lg">Free to join. No commission on first 10 listings. Always local.</p>
+        <div className="flex flex-wrap justify-center gap-4">
+          <Link href="/auth/signup"
+            className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl font-bold text-base transition-all hover:opacity-90 hover:scale-105"
+            style={{ background: "linear-gradient(135deg, #F59E0B, #FBBF24)", color: "#1E0A3C", boxShadow: "0 4px 24px rgba(245,158,11,0.5)" }}>
+            Sign Up Free ⚡ <ArrowRight className="h-5 w-5" />
+          </Link>
+          <Link href="/auth/login"
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-bold text-sm text-white transition-all hover:bg-white/15"
+            style={{ background: "rgba(255,255,255,0.10)", border: "1px solid rgba(255,255,255,0.2)" }}>
+            I already have an account →
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Footer ────────────────────────────────────────────────────
+
+function Footer() {
+  return (
+    <footer className="bg-gray-950 text-gray-500 py-10 px-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6 border-b border-gray-800 pb-8 mb-8">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-xl flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, #3B0764, #7C3AED)" }}>
+              <ShoppingBag className="text-white" style={{ width: 15, height: 15 }} />
             </div>
+            <span className="text-white font-black text-lg">LocalMart</span>
+            <span className="text-xs px-2 py-0.5 rounded font-bold" style={{ background: "#92400E", color: "#FEF3C7" }}>
+              Made in India 🇮🇳
+            </span>
           </div>
-        </section>
-
-        {/* ── Pamuru Community Spotlight ───────────────────────── */}
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 pb-10">
-          <div className="rounded-3xl overflow-hidden border border-orange-100"
-            style={{ background: "linear-gradient(135deg, #fff7ed 0%, #fef3c7 50%, #ecfdf5 100%)" }}>
-            <div className="flex flex-col md:flex-row items-stretch">
-
-              {/* Left — Community identity */}
-              <div className="flex-1 p-6 sm:p-8">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-3xl">🏘️</span>
-                  <div>
-                    <p className="text-xs font-bold text-orange-600 uppercase tracking-wider">Community Spotlight</p>
-                    <h3 className="text-xl font-extrabold text-gray-900">Pamuru &amp; Markapur Area</h3>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-600 mb-5 leading-relaxed">
-                  LocalMart is built for villages like <strong>Pamuru</strong> in Prakasam district, Andhra Pradesh.
-                  Post your farm produce, services, or second-hand items — your neighbors are right here!
-                </p>
-                <div className="grid grid-cols-2 gap-2 mb-5">
-                  {[
-                    { icon: "🌶️", label: "Mirchi / Red Chilli" },
-                    { icon: "🌾", label: "Rice & Paddy" },
-                    { icon: "🥜", label: "Groundnuts" },
-                    { icon: "🐄", label: "Cattle &amp; Livestock" },
-                    { icon: "🛺", label: "Autos &amp; Bikes" },
-                    { icon: "🏡", label: "Land &amp; Plots" },
-                  ].map((item) => (
-                    <div key={item.label} className="flex items-center gap-2 bg-white/60 rounded-xl px-3 py-2 text-xs font-medium text-gray-700">
-                      <span>{item.icon}</span>
-                      <span dangerouslySetInnerHTML={{ __html: item.label }} />
-                    </div>
-                  ))}
-                </div>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Link href="/listings/new"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 text-white px-5 py-2.5 text-sm font-bold hover:bg-orange-600 transition-all shadow-md">
-                    Post in Pamuru Area
-                  </Link>
-                  <Link href="/listings?district=Prakasam"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-white border border-orange-200 text-orange-700 px-5 py-2.5 text-sm font-semibold hover:bg-orange-50 transition-all">
-                    Browse Prakasam Listings
-                  </Link>
-                </div>
-              </div>
-
-              {/* Right — Mandals / reach */}
-              <div className="md:w-64 bg-gradient-to-br from-green-600 to-emerald-700 p-6 text-white flex flex-col justify-center">
-                <p className="text-xs font-bold text-emerald-200 uppercase tracking-wider mb-3">Areas We Serve</p>
-                <div className="space-y-1.5">
-                  {["Pamuru", "Markapur", "Giddalur", "Darsi", "Cumbum", "Ongole", "Kandukur", "Chirala"].map((m) => (
-                    <div key={m} className="flex items-center gap-2 text-sm">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 shrink-0" />
-                      <span className="text-white/90">{m} Mandal</span>
-                    </div>
-                  ))}
-                  <p className="text-xs text-emerald-300 mt-3">+ all other Prakasam mandals</p>
-                </div>
-              </div>
-            </div>
+          <div className="flex flex-wrap justify-center gap-6 text-sm">
+            {["Privacy Policy", "Terms of Service", "Contact", "Become an Agent", "API"].map(l => (
+              <a key={l} href="#" className="hover:text-white transition-colors">{l}</a>
+            ))}
           </div>
-        </section>
+        </div>
+        <div className="text-center text-xs text-gray-600">
+          © 2025 LocalMart Technologies Pvt. Ltd. · CIN: U72900TG2025PTC000001 · All rights reserved
+        </div>
+      </div>
+    </footer>
+  );
+}
 
-        {/* ── Why LocalMart ────────────────────────────────────── */}
-        <section className="bg-white border-t border-gray-100 py-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-extrabold text-gray-900 mb-3">Why LocalMart?</h2>
-              <p className="text-gray-500 max-w-xl mx-auto">The easiest way to buy, sell and find services in your village</p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {FEATURES.map(({ icon: Icon, title, desc, color }) => (
-                <div key={title} className="text-center p-6 rounded-2xl hover:shadow-md transition-all hover:-translate-y-1 border border-gray-50 group">
-                  <div className={`inline-flex h-14 w-14 items-center justify-center rounded-2xl mb-4 ${color} transition-transform group-hover:scale-110`}>
-                    <Icon className="h-7 w-7" />
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">{title}</h3>
-                  <p className="text-sm text-gray-500">{desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+// ── Page ──────────────────────────────────────────────────────
 
-        {/* ── Final CTA ────────────────────────────────────────── */}
-        <section className="hero-gradient py-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 text-center relative z-10">
-            <div className="text-4xl mb-4 animate-float inline-block">🎯</div>
-            <h2 className="text-3xl font-extrabold text-white mb-4">Ready to get started?</h2>
-            <p className="text-purple-200 mb-8 max-w-md mx-auto">Join thousands of villagers already buying and selling on LocalMart</p>
-            <div className="flex flex-col sm:flex-row justify-center gap-3">
-              <Link href="/auth/signup"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-brand-700 hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
-                <Users className="h-4 w-4" /> Sign Up Free
-              </Link>
-              <Link href="/listings/new"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-yellow-400 px-6 py-3 text-sm font-semibold text-gray-900 hover:bg-yellow-300 transition-all shadow-lg hover:-translate-y-0.5">
-                Post a Listing ✨
-              </Link>
-            </div>
-          </div>
-        </section>
-      </main>
-
+export default function LandingPage() {
+  return (
+    <div className="min-h-screen bg-white">
+      <Navbar />
+      <Hero />
+      <TrustBar />
+      <LiveTicker />
+      <CategoryGrid />
+      <HowItWorks />
+      <PersonaShowcase />
+      <AISection />
+      <IndiaCoverage />
+      <FinalCTA />
       <Footer />
     </div>
   );

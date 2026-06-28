@@ -1,6 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+type Role = "ceo" | "board" | "agent" | "customer" | "vendor";
+
+function roleHome(role: Role | null | undefined): string {
+  if (role === "ceo")   return "/ceo";
+  if (role === "board") return "/board";
+  if (role === "agent") return "/agent";
+  return "/user";
+}
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
@@ -14,7 +23,7 @@ export async function middleware(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options as any)
+            supabaseResponse.cookies.set(name, value, options as never)
           );
         },
       },
@@ -24,42 +33,47 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   const path = request.nextUrl.pathname;
 
-  // Protect /dashboard — CEO only
-  if (path.startsWith("/dashboard")) {
-    if (!user) {
-      return NextResponse.redirect(new URL("/auth/login?next=/dashboard", request.url));
-    }
-    const { data: profile } = await supabase
-      .from("users").select("role").eq("id", user.id).single();
-    if (profile?.role !== "ceo") {
-      return NextResponse.redirect(new URL("/", request.url));
-    }
+  // Read role from JWT app_metadata — no DB round-trip, no RLS issues
+  const role = (user?.app_metadata?.role ?? null) as Role | null;
+
+  // ── Protect /ceo ── CEO only
+  if (path.startsWith("/ceo")) {
+    if (!role) return NextResponse.redirect(new URL("/auth/login?next=/ceo", request.url));
+    if (role !== "ceo") return NextResponse.redirect(new URL(roleHome(role), request.url));
   }
 
-  // Protect /agent — agents + CEO only
+  // ── Protect /board ── Board + CEO only
+  if (path.startsWith("/board")) {
+    if (!role) return NextResponse.redirect(new URL("/auth/login?next=/board", request.url));
+    if (!["board", "ceo"].includes(role)) return NextResponse.redirect(new URL(roleHome(role), request.url));
+  }
+
+  // ── Protect /agent ── Agent + CEO
   if (path.startsWith("/agent")) {
-    if (!user) {
-      return NextResponse.redirect(new URL("/auth/login?next=/agent", request.url));
-    }
-    const { data: profile } = await supabase
-      .from("users").select("role").eq("id", user.id).single();
-    if (!["agent", "ceo"].includes(profile?.role)) {
-      return NextResponse.redirect(new URL("/", request.url));
-    }
+    if (!role) return NextResponse.redirect(new URL("/auth/login?next=/agent", request.url));
+    if (!["agent", "ceo"].includes(role)) return NextResponse.redirect(new URL(roleHome(role), request.url));
   }
 
-  // Protect /listings/new — must be logged in
-  if (path === "/listings/new" && !user) {
-    return NextResponse.redirect(new URL("/auth/login?next=/listings/new", request.url));
+  // ── Protect /user ── Authenticated
+  if (path.startsWith("/user")) {
+    if (!user) return NextResponse.redirect(new URL("/auth/login?next=/user", request.url));
   }
 
-  // Redirect logged-in users away from auth pages
+  // ── Protect /dashboard (legacy) → redirect to role home
+  if (path.startsWith("/dashboard")) {
+    if (!role) return NextResponse.redirect(new URL("/auth/login", request.url));
+    return NextResponse.redirect(new URL(roleHome(role), request.url));
+  }
+
+  // ── Protect /my-listings (legacy) → redirect to /user
+  if (path.startsWith("/my-listings")) {
+    if (!user) return NextResponse.redirect(new URL("/auth/login", request.url));
+    return NextResponse.redirect(new URL("/user", request.url));
+  }
+
+  // ── Redirect authenticated users away from auth pages
   if (path.startsWith("/auth/") && user) {
-    const { data: profile } = await supabase
-      .from("users").select("role").eq("id", user.id).single();
-    if (profile?.role === "ceo") return NextResponse.redirect(new URL("/dashboard", request.url));
-    if (profile?.role === "agent") return NextResponse.redirect(new URL("/agent", request.url));
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL(roleHome(role), request.url));
   }
 
   return supabaseResponse;
