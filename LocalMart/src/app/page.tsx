@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { ShoppingBag, ArrowRight, Globe, ChevronRight } from "lucide-react";
+import { ShoppingBag, ArrowRight, Globe } from "lucide-react";
 
 import HeroSearch      from "@/components/home/HeroSearch";
 import TrustBar        from "@/components/home/TrustBar";
@@ -12,6 +11,7 @@ import { OLXHeader }         from "@/components/layout/OLXHeader";
 import { CategoryScrollGrid } from "@/components/home/CategoryScrollGrid";
 import { VerifiedBanner }     from "@/components/home/VerifiedBanner";
 import { RecentlyViewed }     from "@/components/home/RecentlyViewed";
+import { AdCarousel }         from "@/components/home/AdCarousel";
 
 // ── Data ─────────────────────────────────────────────────────
 
@@ -137,71 +137,7 @@ function Hero() {
           </Link>
         </div>
 
-        {/* Location drill-down illustration */}
-        <div className="max-w-md mx-auto">
-          <div className="rounded-2xl overflow-hidden"
-            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(10px)" }}>
-            <div className="px-5 py-3 border-b border-white/10 flex items-center gap-2">
-              <div className="flex gap-1.5">
-                {["bg-red-400","bg-yellow-400","bg-green-400"].map(c => (
-                  <div key={c} className={`h-2.5 w-2.5 rounded-full ${c} opacity-70`} />
-                ))}
-              </div>
-              <span className="text-purple-300 text-xs font-medium">Location Navigator</span>
-            </div>
-            <div className="px-5 py-4">
-              {[
-                { level: "State",    value: "Telangana",        icon: "🗺️" },
-                { level: "District", value: "Nalgonda",         icon: "📍" },
-                { level: "Mandal",   value: "Miryalaguda",      icon: "🏘️" },
-                { level: "Village",  value: "Suryapet Village",  icon: "🏡" },
-                { level: "PIN Code", value: "508 207",          icon: "📮", highlight: true },
-              ].map((row, i) => (
-                <div key={row.level}
-                  className={`flex items-center gap-3 py-2 ${i < 4 ? "border-b border-white/8" : ""}`}>
-                  <div className="h-7 w-7 rounded-lg flex items-center justify-center text-sm shrink-0"
-                    style={{ background: "rgba(255,255,255,0.08)" }}>
-                    {row.icon}
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-purple-400 text-xs">{row.level}</div>
-                    <div className={`text-sm font-semibold ${row.highlight ? "text-yellow-300" : "text-white"}`}>
-                      {row.value}
-                    </div>
-                  </div>
-                  {i < 4 && <ChevronRight className="h-3.5 w-3.5 text-purple-600" />}
-                </div>
-              ))}
-            </div>
-            {/* Active listing badge */}
-            <div className="px-5 pb-4">
-              <div className="flex items-center justify-between rounded-xl px-4 py-2.5"
-                style={{ background: "rgba(167,139,250,0.15)", border: "1px solid rgba(167,139,250,0.25)" }}>
-                <span className="text-xs text-purple-300">Active listings in 508 207</span>
-                <span className="text-sm font-black text-yellow-300">247</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats row */}
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mt-12">
-          {[
-            { icon: "🏡", num: "6L+",  label: "Villages" },
-            { icon: "📮", num: "19K+", label: "PIN Codes" },
-            { icon: "📦", num: "12",   label: "Verticals" },
-            { icon: "🗺️", num: "28+",  label: "States & UTs" },
-            { icon: "🤖", num: "3",    label: "AI Agents" },
-            { icon: "🇮🇳", num: "100%", label: "Made in India" },
-          ].map(s => (
-            <div key={s.label} className="text-center rounded-2xl py-3 px-2"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
-              <div className="text-lg mb-0.5">{s.icon}</div>
-              <div className="text-base font-black text-yellow-300">{s.num}</div>
-              <div className="text-[11px] text-purple-400">{s.label}</div>
-            </div>
-          ))}
-        </div>
+        <AdCarousel />
       </div>
     </section>
   );
