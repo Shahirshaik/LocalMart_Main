@@ -2,15 +2,18 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ShoppingBag, ArrowRight, Menu, X, Globe, ChevronRight } from "lucide-react";
+import { ShoppingBag, ArrowRight, Globe, ChevronRight } from "lucide-react";
 
-import HeroSearch     from "@/components/home/HeroSearch";
-import CategoryGrid   from "@/components/home/CategoryGrid";
-import TrustBar       from "@/components/home/TrustBar";
-import LiveTicker     from "@/components/home/LiveTicker";
+import HeroSearch      from "@/components/home/HeroSearch";
+import TrustBar        from "@/components/home/TrustBar";
+import LiveTicker      from "@/components/home/LiveTicker";
 import PersonaShowcase from "@/components/home/PersonaShowcase";
+import { OLXHeader }         from "@/components/layout/OLXHeader";
+import { CategoryScrollGrid } from "@/components/home/CategoryScrollGrid";
+import { VerifiedBanner }     from "@/components/home/VerifiedBanner";
+import { RecentlyViewed }     from "@/components/home/RecentlyViewed";
 
-// ── Data ──────────────────────────────────────────────────────
+// ── Data ─────────────────────────────────────────────────────
 
 const HOW_IT_WORKS = [
   {
@@ -42,75 +45,6 @@ const HOW_IT_WORKS = [
     gradient: "from-amber-600 to-orange-500",
   },
 ];
-
-// ── Navbar ────────────────────────────────────────────────────
-
-function Navbar() {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-gray-100"
-      style={{ boxShadow: "0 1px 16px rgba(0,0,0,0.06)" }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="h-9 w-9 rounded-xl flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg, #3B0764, #7C3AED)" }}>
-            <ShoppingBag className="text-white" style={{ width: 18, height: 18 }} />
-          </div>
-          <span className="text-xl font-black tracking-tight">
-            Local<span style={{ color: "#7C3AED" }}>Mart</span>
-          </span>
-          <span className="hidden sm:inline text-xs font-bold text-white px-2.5 py-1 rounded-full"
-            style={{ background: "#F59E0B" }}>
-            🇮🇳 Made in India
-          </span>
-        </Link>
-
-        {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-1">
-          {["Verticals", "Agents", "AI Platform", "About"].map(l => (
-            <a key={l} href="#"
-              className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-purple-700 rounded-lg hover:bg-purple-50 transition-colors">
-              {l}
-            </a>
-          ))}
-        </div>
-
-        {/* CTA buttons */}
-        <div className="flex items-center gap-3">
-          <Link href="/auth/login"
-            className="hidden sm:block text-sm font-semibold border border-gray-200 rounded-full px-4 py-2 text-gray-700 hover:border-brand-400 hover:text-brand-700 transition-colors">
-            Sign In
-          </Link>
-          <Link href="/auth/signup"
-            className="hidden sm:flex items-center gap-1.5 text-sm font-bold text-white px-5 py-2 rounded-full transition-all hover:opacity-90"
-            style={{ background: "linear-gradient(135deg, #4C1D95, #7C3AED)", boxShadow: "0 2px 12px rgba(124,58,237,0.4)" }}>
-            Get Started Free
-          </Link>
-          <button onClick={() => setOpen(o => !o)}
-            className="md:hidden p-2.5 min-h-[44px] min-w-[44px] rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center">
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile menu */}
-      {open && (
-        <div className="md:hidden px-4 pb-4 pt-2 border-t border-gray-100 bg-white/98">
-          <div className="flex gap-3">
-            <Link href="/auth/login" className="flex-1 text-center py-2.5 text-sm font-semibold border border-gray-200 rounded-xl hover:bg-gray-50">Sign in</Link>
-            <Link href="/auth/signup" className="flex-1 text-center py-2.5 text-sm font-bold text-white rounded-xl"
-              style={{ background: "linear-gradient(135deg, #4C1D95, #7C3AED)" }}>
-              Get Started
-            </Link>
-          </div>
-        </div>
-      )}
-    </nav>
-  );
-}
 
 // ── Hero Section ──────────────────────────────────────────────
 
@@ -598,13 +532,19 @@ function Footer() {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
-      <Hero />
+    <div className="min-h-screen bg-[#f7f7f7] pb-16 md:pb-0">
+      <OLXHeader />
+      <div className="bg-white">
+        <Hero />
+      </div>
       <TrustBar />
       <LiveTicker />
-      <CategoryGrid />
-      <HowItWorks />
+      <CategoryScrollGrid />
+      <VerifiedBanner />
+      <RecentlyViewed />
+      <div className="bg-white mt-2">
+        <HowItWorks />
+      </div>
       <PersonaShowcase />
       <AISection />
       <IndiaCoverage />

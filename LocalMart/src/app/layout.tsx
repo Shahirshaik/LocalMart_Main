@@ -2,6 +2,7 @@ import { Inter } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n";
+import { BottomNav } from "@/components/layout/BottomNav";
 
 export const metadata: Metadata = {
   title: { default: "LocalMart — Village Marketplace", template: "%s | LocalMart" },
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="font-sans antialiased bg-gray-50 text-gray-900">
         <I18nProvider>{children}</I18nProvider>
+        <BottomNav />
       </body>
     </html>
   );

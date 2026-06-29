@@ -2,130 +2,101 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { MapPin, Clock, Eye, Tag } from "lucide-react";
-import { formatPrice, timeAgo, CATEGORY_ICONS, LISTING_TYPE_LABELS } from "@/lib/utils";
+import { MapPin, Heart } from "lucide-react";
+import { formatPrice, timeAgo, CATEGORY_ICONS } from "@/lib/utils";
 import type { ListingFull } from "@/types/database";
 
-const TYPE_COLORS: Record<string, string> = {
-  sell:    "bg-green-100 text-green-700",
-  buy:     "bg-blue-100 text-blue-700",
-  rent:    "bg-orange-100 text-orange-700",
-  service: "bg-brand-100 text-brand-700",
-};
-
 const GRADIENTS = [
-  "from-brand-400 to-purple-600",
-  "from-blue-400 to-cyan-600",
-  "from-green-400 to-emerald-600",
-  "from-orange-400 to-amber-600",
-  "from-pink-400 to-rose-600",
-  "from-indigo-400 to-violet-600",
+  "from-purple-100 to-purple-200",
+  "from-blue-100 to-blue-200",
+  "from-green-100 to-green-200",
+  "from-orange-100 to-orange-200",
+  "from-pink-100 to-rose-100",
+  "from-indigo-100 to-violet-200",
 ];
 
 interface Props { listing: ListingFull; index?: number; }
 
-// ── Isolated client image with error fallback ────────────────────────────────
 function ListingImage({ src, alt, gradient, icon }: {
   src: string; alt: string; gradient: string; icon: string;
 }) {
   const [error, setError] = useState(false);
-
   if (error) {
     return (
       <div className={`w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center`}>
-        <span className="text-5xl opacity-80">{icon}</span>
+        <span className="text-5xl opacity-60">{icon}</span>
       </div>
     );
   }
-
   return (
-    <img
-      src={src}
-      alt={alt}
-      className="w-full h-full object-cover"
-      onError={() => setError(true)}
-    />
+    <img src={src} alt={alt} className="w-full h-full object-cover" onError={() => setError(true)} />
   );
 }
 
-// ── Card ─────────────────────────────────────────────────────────────────────
 export function ListingCard({ listing, index = 0 }: Props) {
+  const [saved, setSaved] = useState(false);
   const gradient = GRADIENTS[index % GRADIENTS.length];
   const icon = CATEGORY_ICONS[listing.category?.slug ?? "other"] ?? "📦";
 
+  const location = [
+    listing.area || listing.village?.name,
+    listing.city,
+    listing.district || listing.village?.region,
+  ].filter(Boolean).slice(0, 2).join(", ") || listing.state || "India";
+
   return (
-    <Link href={`/listings/${listing.id}`}
-      className="card flex flex-col overflow-hidden group hover:shadow-lg hover:-translate-y-0.5 transition-all">
+    <Link
+      href={`/listings/${listing.id}`}
+      className="block bg-white rounded-lg overflow-hidden hover:shadow-md transition-shadow border border-[#e0e0e0]"
+    >
+      {/* Image — fixed 180px height */}
+      <div className="relative w-full overflow-hidden bg-gray-100" style={{ height: 180 }}>
+        {listing.images?.[0] ? (
+          <ListingImage src={listing.images[0]} alt={listing.title} gradient={gradient} icon={icon} />
+        ) : (
+          <div className={`w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+            <span className="text-5xl opacity-60">{icon}</span>
+          </div>
+        )}
 
-      {/* ── Image container — fixed aspect ratio, never overflows ── */}
-      <div className="relative w-full overflow-hidden shrink-0" style={{ paddingBottom: "66.66%" /* 3:2 ratio */ }}>
-        <div className="absolute inset-0">
-          {listing.images?.[0] ? (
-            <ListingImage
-              src={listing.images[0]}
-              alt={listing.title}
-              gradient={gradient}
-              icon={icon}
-            />
-          ) : (
-            <div className={`w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center`}>
-              <span className="text-5xl opacity-80 group-hover:scale-110 transition-transform">{icon}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Type badge */}
-        <span className={`absolute top-3 left-3 badge ${TYPE_COLORS[listing.type] ?? "bg-white text-gray-700"} z-10`}>
-          {LISTING_TYPE_LABELS[listing.type]}
-        </span>
+        {/* FEATURED badge — top left */}
         {listing.status === "featured" && (
-          <span className="absolute top-3 right-3 badge bg-yellow-400 text-yellow-900 z-10">
-            Featured
+          <span
+            className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold"
+            style={{ background: "#FFCE32", color: "#333" }}
+          >
+            FEATURED
           </span>
         )}
+
+        {/* Heart save — top right */}
+        <button
+          onClick={e => { e.preventDefault(); e.stopPropagation(); setSaved(s => !s); }}
+          className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/90 flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+          aria-label={saved ? "Remove from wishlist" : "Save to wishlist"}
+        >
+          <Heart
+            className="h-4 w-4"
+            style={{ color: saved ? "#ef4444" : "#9ca3af" }}
+            fill={saved ? "#ef4444" : "none"}
+          />
+        </button>
       </div>
 
-      {/* ── Content ── */}
-      <div className="flex flex-col flex-1 p-4 gap-2">
-        <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-brand-600 transition-colors leading-snug">
-          {listing.title}
-        </h3>
-
-        <p className="text-lg font-bold text-brand-600">
+      {/* Content */}
+      <div className="p-2.5">
+        <p className="font-bold text-sm text-gray-900 line-clamp-2 leading-snug">{listing.title}</p>
+        <p className="font-bold text-base mt-1" style={{ color: "#333" }}>
           {formatPrice(listing.price, listing.price_type)}
           {listing.price_type === "negotiable" && (
             <span className="ml-1 text-xs font-normal text-gray-400">negotiable</span>
           )}
         </p>
-
-        <div className="mt-auto space-y-1.5">
-          {(listing.area || listing.city || listing.district || listing.state || listing.village) && (
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <MapPin className="h-3 w-3 shrink-0 text-brand-400" />
-              <span className="truncate">
-                {[listing.area || listing.village?.name, listing.city,
-                  listing.district || listing.village?.region,
-                  listing.state || listing.village?.state]
-                  .filter(Boolean).slice(0, 3).join(", ")}
-              </span>
-            </div>
-          )}
-          {listing.category && (
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <Tag className="h-3 w-3 shrink-0 text-brand-400" />
-              <span className="truncate">{listing.category.name_en ?? listing.category.name}</span>
-            </div>
-          )}
-          <div className="flex items-center justify-between text-xs text-gray-400 pt-1 border-t border-gray-50">
-            <span className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {timeAgo(listing.created_at)}
-            </span>
-            <span className="flex items-center gap-1">
-              <Eye className="h-3 w-3" />
-              {listing.view_count ?? 0}
-            </span>
-          </div>
+        <div className="flex items-center gap-1 mt-1.5 text-[11px] text-gray-400">
+          <MapPin className="h-2.5 w-2.5 shrink-0" />
+          <span className="truncate">{location}</span>
+          <span className="mx-1">·</span>
+          <span className="shrink-0">{timeAgo(listing.created_at)}</span>
         </div>
       </div>
     </Link>
