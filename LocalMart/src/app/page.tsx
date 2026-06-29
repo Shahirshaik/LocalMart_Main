@@ -73,14 +73,14 @@ function Hero() {
         <div className="text-center mb-8">
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.08] tracking-tight mb-5"
             style={{ textShadow: "0 2px 20px rgba(0,0,0,0.25)" }}>
-            हर गाँव का{" "}
+            Every Village,{" "}
             <span style={{
               background: "linear-gradient(90deg, #FCD34D, #F59E0B, #FBBF24)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
             }}>
-              अपना बाज़ार
+              Its Own Market
             </span>
           </h1>
           <p className="text-purple-200 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed font-medium">

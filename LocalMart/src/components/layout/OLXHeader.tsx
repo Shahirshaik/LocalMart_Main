@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, MapPin, ChevronDown, Heart, Bell } from "lucide-react";
+import { Search, MapPin, ChevronDown, Heart, Bell, Globe } from "lucide-react";
 import { LocationPickerModal } from "@/components/ui/LocationPickerModal";
+import { useI18n, LANGUAGES, type LangCode } from "@/lib/i18n";
 
 const RECENT_SEARCH_KEY = "lm_recent_searches";
 const LOCATION_KEY = "lm_location";
@@ -21,14 +22,17 @@ interface Props {
 
 export function OLXHeader({ unreadNotifications = 0, unreadWishlist = 0 }: Props) {
   const router = useRouter();
+  const { lang, setLang } = useI18n();
   const [query, setQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [listening, setListening] = useState(false);
   const [locationLabel, setLocationLabel] = useState("India");
   const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [showLangPicker, setShowLangPicker] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const langRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     try {
@@ -52,6 +56,9 @@ export function OLXHeader({ unreadNotifications = 0, unreadWishlist = 0 }: Props
         inputRef.current && !inputRef.current.contains(e.target as Node)
       ) {
         setShowSuggestions(false);
+      }
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setShowLangPicker(false);
       }
     }
     document.addEventListener("mousedown", handler);
@@ -233,6 +240,36 @@ export function OLXHeader({ unreadNotifications = 0, unreadWishlist = 0 }: Props
                 </span>
               )}
             </Link>
+
+            {/* Language picker */}
+            <div ref={langRef} className="relative shrink-0">
+              <button
+                onClick={() => setShowLangPicker(p => !p)}
+                className="flex items-center gap-1 rounded-lg hover:bg-gray-100 transition-colors px-2"
+                style={{ height: 44 }}
+                title="Switch language"
+              >
+                <Globe className="h-4 w-4 text-gray-600" />
+                <span className="text-xs font-bold text-gray-700 uppercase">{lang}</span>
+              </button>
+              {showLangPicker && (
+                <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden py-1">
+                  {LANGUAGES.map(l => (
+                    <button
+                      key={l.code}
+                      onClick={() => { setLang(l.code as LangCode); setShowLangPicker(false); }}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left transition-colors ${
+                        lang === l.code ? "bg-purple-50 text-purple-700 font-semibold" : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <span>{l.flag}</span>
+                      <span className="flex-1">{l.label}</span>
+                      <span className="text-xs text-gray-400">{l.native}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>

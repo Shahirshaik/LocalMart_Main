@@ -188,7 +188,7 @@ export default function CategoryGrid({ pinCode }: Props) {
             📦 12 Verticals · Everything Hyperlocal
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 mb-3">
-            अपने गाँव का बाज़ार
+            Your Local Marketplace
           </h2>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto">
             From farm to mechanic to real estate — every service from your neighbourhood, now online.
@@ -222,7 +222,7 @@ export default function CategoryGrid({ pinCode }: Props) {
                 <h3 className={`font-black text-sm leading-tight mb-0.5 ${cat.text}`}>
                   {cat.label}
                 </h3>
-                <p className="text-gray-400 text-xs font-medium mb-2">{cat.hindi}</p>
+
                 <p className="text-gray-500 text-xs leading-snug mb-3 hidden sm:block">{cat.desc}</p>
 
                 {/* Sample listing preview */}
