@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Navbar } from "@/components/layout/Navbar";
+import { OLXHeader } from "@/components/layout/OLXHeader";
 import { Footer } from "@/components/layout/Footer";
 import { formatPrice, timeAgo } from "@/lib/utils";
 import { Plus, MapPin, Clock, Eye, Tag, ChevronRight } from "lucide-react";
@@ -48,8 +48,8 @@ export default async function MyListingsPage() {
   const sold     = all.filter((l) => l.status === "sold").length;
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar userRole={userRole} userEmail={user.email} />
+    <div className="flex min-h-screen flex-col pb-16 md:pb-0">
+      <OLXHeader />
 
       <main className="flex-1 bg-gray-50">
         {/* Header */}

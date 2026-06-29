@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Navbar } from "@/components/layout/Navbar";
+import { OLXHeader } from "@/components/layout/OLXHeader";
 import { Footer } from "@/components/layout/Footer";
 import { ListingStatusBadge } from "@/components/ui/StatusBadge";
 import { formatPrice, timeAgo, CATEGORY_ICONS, LISTING_TYPE_LABELS } from "@/lib/utils";
 import { MapPin, Clock, Eye, Tag, ArrowLeft } from "lucide-react";
-import type { UserRole, ListingFull } from "@/types/database";
+import type { ListingFull } from "@/types/database";
 import { ContactAgentPanel } from "@/components/listings/ContactAgentPanel";
 import { FallbackImage } from "@/components/ui/FallbackImage";
 
@@ -15,13 +15,6 @@ interface Props { params: Promise<{ id: string }> }
 export default async function ListingDetailPage({ params }: Props) {
   const { id } = await params;
   const supabase = await createClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
-  let userRole: UserRole | null = null;
-  if (user) {
-    const { data } = await supabase.from("users").select("role").eq("id", user.id).single();
-    userRole = data?.role ?? null;
-  }
 
   const { data: listing } = await supabase
     .from("listings")
@@ -49,8 +42,8 @@ export default async function ListingDetailPage({ params }: Props) {
     .limit(4);
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar userRole={userRole} userEmail={user?.email} />
+    <div className="flex min-h-screen flex-col pb-16 md:pb-0">
+      <OLXHeader />
 
       <main className="flex-1 bg-gray-50">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 py-6">

@@ -1,10 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
-import { Navbar } from "@/components/layout/Navbar";
+import { OLXHeader } from "@/components/layout/OLXHeader";
 import { Footer } from "@/components/layout/Footer";
 import { ListingCard } from "@/components/listings/ListingCard";
 import Link from "next/link";
 import { Search, SlidersHorizontal, Plus } from "lucide-react";
-import type { UserRole, ListingFull } from "@/types/database";
+import type { ListingFull } from "@/types/database";
 
 const TYPES = [
   { value: "", label: "All" },
@@ -34,13 +34,6 @@ interface Props {
 export default async function ListingsPage({ searchParams }: Props) {
   const params = await searchParams;
   const supabase = await createClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
-  let userRole: UserRole | null = null;
-  if (user) {
-    const { data } = await supabase.from("users").select("role").eq("id", user.id).single();
-    userRole = data?.role ?? null;
-  }
 
   const page = Number(params.page ?? 1);
   const limit = 24;
@@ -73,8 +66,8 @@ export default async function ListingsPage({ searchParams }: Props) {
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar userRole={userRole} userEmail={user?.email} />
+    <div className="flex min-h-screen flex-col pb-16 md:pb-0">
+      <OLXHeader />
 
       <main className="flex-1 bg-gray-50">
         <div className="bg-white border-b border-gray-100">
@@ -163,7 +156,7 @@ export default async function ListingsPage({ searchParams }: Props) {
 
               {listings && listings.length > 0 ? (
                 <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                  <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
                     {(listings as ListingFull[]).map((l, i) => (
                       <ListingCard key={l.id} listing={l} index={i} />
                     ))}
