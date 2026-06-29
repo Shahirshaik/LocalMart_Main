@@ -67,22 +67,23 @@ const ROLE_BADGE_COLOR: Record<string, string> = {
   vendor:   "bg-green-500",
 };
 
-export function AppSidebar({ role, userName }: { role: Role; userName?: string }) {
+export function AppSidebar({ role, userName, onClose }: { role: Role; userName?: string; onClose?: () => void }) {
   const { t }    = useI18n();
   const pathname = usePathname();
   const router   = useRouter();
   const nav      = navFor(role);
 
   const handleLogout = async () => {
+    onClose?.();
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/auth/login");
   };
 
   return (
-    <aside className="dash-sidebar">
+    <aside className="h-full flex flex-col">
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-5 py-5 border-b border-purple-900/40">
+      <div className="flex items-center gap-2.5 px-5 py-5 border-b border-purple-900/40 mt-10 md:mt-0">
         <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0" style={{background:"rgba(255,255,255,0.15)"}}>
           <ShoppingBag className="text-white" style={{width:16,height:16}} />
         </div>
@@ -111,6 +112,7 @@ export function AppSidebar({ role, userName }: { role: Role; userName?: string }
           const active = pathname === item.href || (item.href !== "/" + role.split("/")[0] && pathname.startsWith(item.href));
           return (
             <Link key={item.href} href={item.href}
+              onClick={() => onClose?.()}
               className={`dash-sidebar-link ${active ? "active" : ""}`}>
               <span className="text-base w-5 text-center shrink-0">{item.icon}</span>
               <span className="flex-1 text-sm">{item.label}</span>
@@ -122,12 +124,12 @@ export function AppSidebar({ role, userName }: { role: Role; userName?: string }
 
       {/* Footer */}
       <div className="px-3 py-4 border-t border-purple-900/30">
-        <Link href="/" className="dash-sidebar-link mb-1">
+        <Link href="/" onClick={() => onClose?.()} className="dash-sidebar-link mb-1">
           <span className="text-base w-5 text-center">🌐</span>
           <span className="text-sm">{t("common.browse") || "View Marketplace"}</span>
         </Link>
         <button onClick={handleLogout} className="dash-sidebar-link w-full text-left">
-          <LogOut className="h-4 w-4 w-5 text-purple-400 shrink-0" />
+          <LogOut className="h-4 w-4 text-purple-400 shrink-0" />
           <span className="text-sm">{t("nav.logout")}</span>
         </button>
       </div>

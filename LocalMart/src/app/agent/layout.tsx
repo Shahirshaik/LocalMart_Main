@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { AppSidebar } from "@/components/layout/AppSidebar";
+import { MobileNavWrapper } from "@/components/layout/MobileNavWrapper";
 
 export default async function AgentLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -13,9 +13,11 @@ export default async function AgentLayout({ children }: { children: React.ReactN
   if (!["agent", "ceo"].includes(profile?.role)) redirect("/user");
 
   return (
-    <div className="dash-shell">
-      <AppSidebar role="agent" userName={profile?.full_name || user.email || "Agent"} />
-      <main className="dash-content">{children}</main>
-    </div>
+    <MobileNavWrapper
+      role="agent"
+      userName={profile?.full_name || user.email || "Agent"}
+    >
+      {children}
+    </MobileNavWrapper>
   );
 }

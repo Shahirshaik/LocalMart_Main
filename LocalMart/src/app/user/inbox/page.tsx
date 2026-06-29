@@ -14,15 +14,12 @@ export default async function InboxPage({ searchParams }: InboxPageProps) {
   const { conv } = await searchParams;
 
   return (
-    <div>
-      <div className="dash-topbar">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900">Messages</h1>
-          <p className="text-xs text-gray-500 mt-0.5">Chat with buyers and sellers</p>
-        </div>
+    <div className="p-3 md:p-6 h-[calc(100dvh-56px)] md:h-[calc(100dvh-0px)] flex flex-col">
+      <div className="mb-3 md:mb-4">
+        <h1 className="text-lg md:text-xl font-bold text-gray-900">Messages</h1>
+        <p className="text-xs text-gray-500 mt-0.5">Chat directly with buyers &amp; sellers — free, peer-to-peer</p>
       </div>
-
-      <div className="p-6" style={{ height: "calc(100vh - 73px)" }}>
+      <div className="flex-1 min-h-0">
         <ChatInbox
           currentUserId={user.id}
           initialConversationId={conv ?? null}
