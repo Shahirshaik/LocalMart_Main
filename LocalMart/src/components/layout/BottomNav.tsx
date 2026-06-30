@@ -25,7 +25,7 @@ export function BottomNav() {
   }
 
   function handleSell() {
-    router.push(loggedIn ? "/user/post-listing" : "/auth/signup");
+    router.push(loggedIn ? "/listings/new" : "/auth/signup");
   }
 
   type TabDef = { href: string; icon: React.ElementType; label: string; exact?: boolean };
@@ -35,8 +35,8 @@ export function BottomNav() {
     { href: "/user/inbox", icon: MessageCircle, label: "Chats" },
   ];
   const right: TabDef[] = [
-    { href: "/user/my-ads",  icon: ListChecks, label: "My Ads" },
-    { href: "/user/profile", icon: User,       label: "Account" },
+    { href: "/my-listings", icon: ListChecks, label: "My Ads" },
+    { href: "/user",        icon: User,       label: "Account" },
   ];
 
   function TabLink({ tab }: { tab: TabDef }) {

@@ -130,7 +130,7 @@ export default function CategoryStrip() {
         {CATEGORIES.map((cat) => (
           <Link
             key={cat.key}
-            href={`/user/category/${cat.slug}`}
+            href={`/listings?category=${cat.slug}`}
             className={`group flex flex-col items-center gap-2 p-3 rounded-2xl border ${cat.bg} ${cat.border} hover:shadow-md transition-all hover:-translate-y-0.5`}
           >
             <div

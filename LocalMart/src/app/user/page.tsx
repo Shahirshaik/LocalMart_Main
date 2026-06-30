@@ -31,9 +31,9 @@ export default async function UserDashboard() {
   const [profileRes, myListingsRes, recentListingsRes, convCountRes, notifCountRes] = await Promise.all([
     supabase.from("users").select("full_name, village_id, role").eq("id", user!.id).single(),
     supabase.from("listings")
-      .select("id, title, status, submitted_at")
-      .eq("user_id", user!.id)
-      .order("submitted_at", { ascending: false })
+      .select("id, title, status, created_at")
+      .eq("seller_id", user!.id)
+      .order("created_at", { ascending: false })
       .limit(4),
     supabase.from("listings")
       .select("id, title, price, status, created_at, category, is_featured")
@@ -103,9 +103,9 @@ export default async function UserDashboard() {
         {/* Quick stats */}
         <div className="grid grid-cols-3 gap-3 py-4">
           {[
-            { icon: "📋", label: "My Listings", value: myListings.length, href: "/user/my-ads" },
-            { icon: "✅", label: "Active Ads",  value: myListings.filter((l) => l.status === "active").length, href: "/user/my-ads?status=active" },
-            { icon: "🛒", label: "Marketplace",  value: `${recent.length}+`, href: "/user/all-listings" },
+            { icon: "📋", label: "My Listings", value: myListings.length, href: "/my-listings" },
+            { icon: "✅", label: "Active Ads",  value: myListings.filter((l) => l.status === "active").length, href: "/my-listings" },
+            { icon: "🛒", label: "Marketplace",  value: `${recent.length}+`, href: "/listings" },
           ].map((s) => (
             <Link key={s.label} href={s.href}
               className="stat-card border-l-4 border-l-purple-400 text-center hover:no-underline">
@@ -129,7 +129,7 @@ export default async function UserDashboard() {
           <div className="card p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-bold text-gray-900">📋 My Listings</h2>
-              <Link href="/user/my-ads" className="text-xs text-purple-600 font-semibold">
+              <Link href="/my-listings" className="text-xs text-purple-600 font-semibold">
                 All →
               </Link>
             </div>
@@ -149,7 +149,7 @@ export default async function UserDashboard() {
                     <div className="min-w-0 flex-1">
                       <div className="font-medium text-sm truncate text-gray-800">{l.title}</div>
                       <div className="text-xs text-gray-400 mt-0.5">
-                        {new Date(l.submitted_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                        {new Date(l.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                       </div>
                     </div>
                     <span className={`badge ml-3 shrink-0 ${STATUS_COLOR[l.status] ?? "bg-gray-100 text-gray-600"}`}>
@@ -182,7 +182,7 @@ export default async function UserDashboard() {
                 style={{ background: "#F59E0B", color: "#1E0A3C" }}>
                 Post Free Now ⚡
               </Link>
-              <Link href="/user/all-listings"
+              <Link href="/listings"
                 className="text-xs font-semibold px-5 py-2.5 rounded-xl border border-purple-600 text-purple-200 hover:bg-white/10 transition-all">
                 Browse First
               </Link>

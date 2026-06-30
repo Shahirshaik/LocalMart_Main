@@ -8,6 +8,7 @@ import { formatPrice, timeAgo, CATEGORY_ICONS, LISTING_TYPE_LABELS } from "@/lib
 import { MapPin, Clock, Eye, Tag, ArrowLeft } from "lucide-react";
 import type { ListingFull } from "@/types/database";
 import { ContactAgentPanel } from "@/components/listings/ContactAgentPanel";
+import { ChatWithSellerButton } from "@/components/listings/ChatWithSellerButton";
 import { FallbackImage } from "@/components/ui/FallbackImage";
 
 interface Props { params: Promise<{ id: string }> }
@@ -139,6 +140,15 @@ export default async function ListingDetailPage({ params }: Props) {
             </div>
 
             <div className="space-y-4">
+              <div className="card p-5">
+                <p className="text-xs text-gray-500 mb-3 font-medium">Sold by {l.seller?.full_name ?? "Seller"}</p>
+                <ChatWithSellerButton
+                  listingId={l.id}
+                  sellerId={l.seller_id}
+                  sellerName={l.seller?.full_name}
+                />
+              </div>
+
               <ContactAgentPanel
                 listingId={l.id}
                 agent={l.agent ?? null}
